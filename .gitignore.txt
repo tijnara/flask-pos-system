@@ -1,0 +1,23 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+*/__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite Database (Optional - uncomment if you DON'T want to commit the DB)
+# *.db
+# *.sqlite
+# *.sqlite3
+
+# Backup Directory (You usually don't commit backups)
+db_backups/
+
+# IDE specific files (PyCharm example)
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db

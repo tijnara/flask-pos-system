@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ title }}</h2> <form method="POST">
+    <div class="form-group">
+        <label for="name">Customer Name:</label>
+        <input type="text" id="name" name="name" value="{{ customer.CustomerName if customer else request.form.name if request and request.form else '' }}" required>
+    </div>
+
+    <div class="form-group">
+        <label for="contact">Contact Number:</label>
+        <input type="text" id="contact" name="contact" value="{{ customer.ContactNumber if customer else request.form.contact if request and request.form else '' }}">
+    </div>
+
+    <div class="form-group">
+        <label for="address">Address:</label>
+        <textarea id="address" name="address">{{ customer.Address if customer else request.form.address if request and request.form else '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success">{{ 'Update' if customer else 'Add' }} Customer</button>
+
+    <a href="{{ url_for('list_customers') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

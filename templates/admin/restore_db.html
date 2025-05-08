@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Restore Database</h2>
+
+<div class="warning-message" style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+    <h4><strong style="color: #721c24;">WARNING: Critical Operation!</strong></h4>
+    <p>Restoring the database will <strong>completely overwrite</strong> the current live database with the content of the uploaded file. All current data will be lost and replaced.</p>
+    <p>It is <strong>highly recommended</strong> to back up your current database manually before proceeding if you have any doubts.</p>
+    <p>Ensure the uploaded file is a valid SQLite database file (`.db`, `.sqlite`, or `.sqlite3`) compatible with this application's schema.</p>
+    <p>After a successful restore, it might be necessary to restart the application for changes to take full effect.</p>
+</div>
+
+<form method="POST" enctype="multipart/form-data" action="{{ url_for('restore_database') }}">
+    <div class="form-group">
+        <label for="database_file">Select Database File to Restore (.db, .sqlite, .sqlite3):</label>
+        <input type="file" id="database_file" name="database_file" class="form-control" accept=".db,.sqlite,.sqlite3" required>
+        <small class="form-text text-muted" style="display: block; margin-top: 5px;">
+            Max file size depends on server configuration.
+        </small>
+    </div>
+
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you absolutely sure you want to overwrite the current database? This action cannot be undone easily.');">
+        Restore Database
+    </button>
+</form>
+
+<hr style="margin-top: 30px; margin-bottom: 20px;">
+<h3>Backup Information</h3>
+<p>Before a restore operation, the system attempts to create a backup of the current database in the '<strong>{{ BACKUP_DIR }}</strong>' directory (relative to the application root) with a timestamp.</p>
+<p>Example backup filename: <code>pos_system.YYYYMMDDHHMMSS.db.bak</code> (or similar based on your DATABASE_FILE name)</p>
+
+<script>
+    // Client-side validation for file type (enhancement, server-side is crucial)
+    const dbFileInput = document.getElementById('database_file');
+    if (dbFileInput) {
+        dbFileInput.addEventListener('change', function() {
+            const fileName = this.value;
+            const allowedExtensions = /(\.db|\.sqlite|\.sqlite3)$/i; // Case-insensitive check
+            if (!allowedExtensions.exec(fileName)) {
+                alert('Invalid file type. Please select a .db, .sqlite, or .sqlite3 file.');
+                this.value = ''; // Reset the input field
+                return false;
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEASIDE - POS ({{ title }})</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="site-content"> <header>
+            <h1>SEASIDE</h1>
+        </header>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('pos_interface') }}">New Sale (POS)</a></li>
+                <li><a href="{{ url_for('list_products') }}">Manage Products</a></li>
+                <li><a href="{{ url_for('list_customers') }}">Manage Customers</a></li>
+                <li><a href="{{ url_for('list_sales') }}">Sales History</a></li>
+                {# --- Single Admin Link --- #}
+                <li><a href="{{ url_for('admin_index') }}">Admin</a></li>
+                 {# --- End Admin Link --- #}
+            </ul>
+        </nav>
+        <main class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flash-messages">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+            <div class="content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    <footer>
+        <p style="text-align:center; color: #777;">&copy; {{ now().year }} POS System</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

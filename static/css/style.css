@@ -1,0 +1,330 @@
+/* static/css/style.css */
+
+/* Apple Green Theme Variables (Conceptual)
+   Primary: #8DB600
+   Darker: #6A8A00
+   Lighter/Success BG: #D0F0C0
+   Success Text: #38761D
+   Info: #90EE90 (LightGreen)
+   Text on Green: #FFFFFF or #2F3E0A (very dark green/black)
+*/
+
+/* Basic Reset & Body Styling */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #e9f5db; /* Lighter green background */
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.site-content {
+    flex: 1;
+}
+
+/* Container Styling - Applied to non-POS pages */
+main.container { /* Target main container specifically */
+    width: 95%;
+    max-width: 1200px;
+    margin: 20px auto;
+    overflow: visible; /* Changed from hidden to allow potential overflows like dropdowns */
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Header Styling */
+header {
+    background: #8DB600; /* Apple Green */
+    color: #ffffff; /* White text */
+    padding: 0.8rem 0; /* Slightly smaller header */
+    text-align: center;
+}
+header h1 {
+    margin: 0;
+    font-size: 1.5rem; /* Smaller header text */
+}
+
+/* Navigation Styling */
+nav ul {
+    padding: 0; list-style: none; text-align: center;
+    background: #6A8A00; margin-bottom: 10px; /* Reduced margin */
+}
+nav ul li { display: block; border-bottom: 1px solid #7F9F00; }
+nav ul li:last-child { border-bottom: none; }
+nav ul li a { color: #ffffff; text-decoration: none; padding: 10px 15px; display: block; }
+nav ul li a:hover { background: #7F9F00; }
+
+
+/* Flash Messages */
+.flash-messages {
+    list-style: none; padding: 0; margin-bottom: 10px;
+    width: 100%; /* Take full width within container */
+     /* If using outside container (e.g., for full-width POS), adjust width/margin: */
+    /* width: 95%; max-width: 1200px; margin-left: auto; margin-right: auto; */
+}
+.flash-messages li { padding: 12px 15px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }
+.flash-messages .success { background-color: #D0F0C0; color: #38761D; border-color: #A9D8A1; }
+.flash-messages .error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+.flash-messages .info { background-color: #cfe8fc; color: #0a58ca; border-color: #b0d9f9; }
+.flash-messages .warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+
+/* --- General Table Styles (for Products, Customers, Sales History etc.) --- */
+.table-responsive-wrapper {
+    overflow-x: auto; /* Allows horizontal scrolling for the table */
+    margin-bottom: 20px;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    width: 100%; /* Ensure wrapper takes full width */
+}
+/* Apply general table styles only to tables INSIDE the wrapper */
+.table-responsive-wrapper > table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-responsive-wrapper > table th,
+.table-responsive-wrapper > table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    white-space: nowrap; /* Important for horizontal scrolling */
+}
+.table-responsive-wrapper > table th {
+    background-color: #e9f5db; /* Very light green for table headers */
+}
+/* Actions in General Tables */
+.table-responsive-wrapper .actions a,
+.table-responsive-wrapper .actions button {
+    margin-right: 5px;
+    margin-bottom: 5px;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    display: inline-block;
+    font-size: 0.9rem;
+    color: #ffffff; /* Default white text */
+}
+.table-responsive-wrapper .actions .edit-btn { background-color: #6A8A00; } /* Darker Apple Green */
+.table-responsive-wrapper .actions .delete-btn { background-color: #dc3545; } /* Kept Red */
+.table-responsive-wrapper .actions .view-btn { background-color: #8DB600; } /* Apple Green */
+
+
+/* --- POS Layout Specific Styles --- */
+/* Remove container styles specifically for POS page if needed */
+/* Add class="pos-page" to <body> tag in base.html if you want this */
+/* body.pos-page main.container {
+     width: 95%;
+     max-width: 1300px;
+     margin: 10px auto;
+     padding: 0;
+     background-color: transparent;
+     box-shadow: none;
+     border-radius: 0;
+} */
+
+.pos-grid-container {
+    display: flex;
+    flex-direction: column; /* Stack vertically on small screens */
+    gap: 15px;
+    padding: 10px; /* Add padding around the whole POS area */
+    background-color: #D0F0C0; /* Light green background for the POS area */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    /* If not using body.pos-page: */
+     width: 95%; max-width: 1300px; margin: 10px auto;
+}
+
+.pos-add-to-sale, .pos-current-sale-panel {
+    background-color: #f0f8e8; /* Very light green for panels */
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #b0d198; /* Slightly darker green border */
+}
+
+.pos-add-to-sale h3, .pos-current-sale-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #b0d198;
+    color: #6A8A00; /* Darker Green */
+    text-align: center;
+}
+
+/* Product Button Grid */
+.product-button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Responsive grid */
+    gap: 10px;
+}
+.product-button-grid form { display: contents; }
+.product-btn {
+    width: 100%; padding: 15px 10px; font-size: 0.95rem; line-height: 1.3; text-align: center;
+    background-color: #90EE90; color: #2F3E0A; border: 1px solid #7CCD7C;
+    border-radius: 5px; cursor: pointer; transition: background-color 0.2s ease;
+}
+.product-btn:hover { background-color: #7CCD7C; border-color: #69b669; }
+.product-btn .price { font-size: 0.85rem; color: #556B2F; display: block; margin-top: 3px; }
+.custom-sale-btn { background-color: #FFD700; border-color: #e0bb00; color: #333; }
+.custom-sale-btn:hover { background-color: #e0bb00; }
+
+/* Right Panel: Current Sale */
+.pos-current-sale-panel {
+    display: flex; flex-direction: column;
+    height: calc(85vh - 40px); /* Example height, adjust as needed */
+    min-height: 400px;
+}
+.current-sale-items-list {
+    flex-grow: 1; overflow-y: auto; border: 1px solid #b0d198;
+    border-radius: 4px; margin-bottom: 10px; background-color: #fff;
+}
+/* Styles for the TABLE specifically inside the POS current sale list */
+.current-sale-items-list > table { width: 100%; border-collapse: collapse; }
+.current-sale-items-list > table th, .current-sale-items-list > table td {
+    padding: 8px; text-align: left; border-bottom: 1px solid #eee; white-space: normal;
+    vertical-align: middle; /* Align content vertically */
+}
+.current-sale-items-list > table th {
+    background-color: #e9f5db; position: sticky; top: 0; z-index: 1;
+}
+
+/* --- Alignment Fixes for POS Table Headers --- */
+.current-sale-items-list > table th:nth-child(1) { text-align: left; } /* Item */
+.current-sale-items-list > table th:nth-child(2) { text-align: center; } /* Qty */
+.current-sale-items-list > table th:nth-child(3) { text-align: right; } /* Price */
+.current-sale-items-list > table th:nth-child(4) { text-align: right; } /* Subtotal */
+.current-sale-items-list > table th:nth-child(5) { text-align: center; } /* Act */
+/* --- End Alignment Fixes --- */
+
+.current-sale-items-list > table td:nth-child(2) { text-align: center; white-space: nowrap; width: 100px; } /* Qty Cell */
+.current-sale-items-list > table td:nth-child(3), /* Price */
+.current-sale-items-list > table td:nth-child(4) { text-align: right; white-space: nowrap; } /* Subtotal */
+.current-sale-items-list > table td:nth-child(5) { text-align: center; width: 40px; } /* Actions */
+.btn-remove-item {
+    padding: 2px 6px !important; font-size: 0.9em !important; line-height: 1;
+    font-weight: bold; color: white !important; background-color: #dc3545 !important; border: none;
+}
+/* Styles for Quantity Controls */
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center items horizontally */
+    gap: 5px; /* Space between buttons and number */
+}
+.quantity-controls form {
+    display: inline-block; /* Keep forms inline */
+    margin: 0;
+}
+.btn-qty {
+    padding: 1px 6px; /* Small padding */
+    font-size: 1em; /* Adjust font size */
+    line-height: 1;
+    min-width: 25px; /* Minimum width */
+    cursor: pointer;
+    border: 1px solid #adb5bd;
+    background-color: #f8f9fa;
+    color: #495057;
+    border-radius: 3px;
+}
+.btn-qty:hover {
+    background-color: #e9ecef;
+}
+.item-quantity {
+    display: inline-block;
+    min-width: 20px; /* Ensure number has some space */
+    text-align: center;
+    font-weight: bold;
+}
+
+
+/* Customer Area */
+.customer-area { padding: 10px 0; margin-bottom: 10px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+.latest-customer { margin-left: 15px; font-style: italic; color: #555; }
+
+/* Finalize Area */
+.finalize-area { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 10px; }
+.btn-finalize { padding: 10px 25px; font-size: 1.1rem; font-weight: bold; }
+.total-display { font-size: 1.4rem; font-weight: bold; color: #38761D; }
+
+/* Bottom Actions */
+.bottom-actions { display: flex; justify-content: flex-start; gap: 10px; padding-top: 10px; border-top: 1px solid #eee; }
+.btn-pos-action { padding: 8px 15px; font-size: 0.9rem; }
+
+
+/* --- General Form & Button Styles (Ensure they are available) --- */
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: bold; }
+.form-group input[type="text"], .form-group input[type="number"], .form-group input[type="password"], .form-group textarea, .form-group select, .form-group input[list] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #8DB600; box-shadow: 0 0 0 0.2rem rgba(141, 182, 0, 0.25); }
+textarea { min-height: 80px; resize: vertical; }
+
+.btn { padding: 12px 18px; color: white; background-color: #8DB600; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 1rem; transition: background-color 0.2s ease-in-out; }
+.btn:hover { background-color: #6A8A00; }
+.btn-primary { background-color: #8DB600; color: #fff; }
+.btn-primary:hover { background-color: #6A8A00; }
+.btn-secondary { background-color: #6c757d; color: #fff; }
+.btn-secondary:hover { background-color: #5a6268; }
+.btn-danger { background-color: #dc3545; color: #fff; }
+.btn-danger:hover { background-color: #c82333; }
+.btn-success { background-color: #8DB600; color: #fff; }
+.btn-success:hover { background-color: #6A8A00; }
+.btn-info { background-color: #90EE90; color: #2F3E0A; }
+.btn-info:hover { background-color: #7CCD7C; }
+.btn-warning { background-color: #ffc107; color: #212529; }
+.btn-warning:hover { background-color: #e0a800; }
+
+
+/* --- Modal Styles --- */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); padding-top: 60px; }
+.modal-content { background-color: #f0f8e8; margin: 5% auto; padding: 25px; border: 1px solid #b0d198; width: 80%; max-width: 500px; border-radius: 8px; position: relative; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); }
+.modal-content h2 { margin-top: 0; margin-bottom: 20px; color: #6A8A00; text-align: center; border-bottom: 1px solid #b0d198; padding-bottom: 10px; }
+.close-button { color: #aaa; position: absolute; top: 10px; right: 15px; font-size: 28px; font-weight: bold; }
+.close-button:hover, .close-button:focus { color: #333; text-decoration: none; cursor: pointer; }
+.modal-actions { margin-top: 25px; text-align: right; }
+.modal-actions .btn { margin-left: 10px; }
+.modal .form-group label { color: #556B2F; }
+.modal .form-group input[type="text"],
+.modal .form-group input[type="number"],
+.modal .form-group select { /* Added select here */
+     background-color: #fff; /* Ensure white background for select too */
+}
+
+
+/* Footer Styling */
+footer { text-align: center; padding: 20px; background: #333; color: #aaa; margin-top: auto; }
+footer p { margin: 0; }
+
+/* Media Queries for Responsiveness */
+@media (min-width: 768px) { /* Tablets and wider */
+    header h1 { font-size: 1.8rem; }
+    nav ul li { display: inline-block; border-bottom: none; }
+    .pos-grid-container { flex-direction: row; }
+    .pos-add-to-sale { width: 40%; }
+    .pos-current-sale-panel { width: 60%; }
+    .table-responsive-wrapper .actions button,
+    .table-responsive-wrapper .actions a { margin-bottom: 0; }
+}
+@media (min-width: 992px) { /* Desktops */
+    main.container { width: 90%; }
+    header h1 { font-size: 2rem; }
+    .pos-add-to-sale { width: 35%; }
+    .pos-current-sale-panel { width: 65%; }
+}
+
+/* Pagination Styles */
+.pagination .btn { margin: 0 2px; padding: 6px 10px; font-size: 0.9em; }
+.pagination .btn.current-page { background-color: #8DB600; color: white; border-color: #7F9F00; }
+.pagination .btn.disabled { pointer-events: none; opacity: 0.5; }
+.btn-outline-secondary { background-color: transparent; border: 1px solid #adb5bd; color: #6c757d; }
+.btn-outline-secondary:hover { background-color: #e9ecef; color: #495057; }
+.pagination .btn-outline-secondary.disabled { border: none; background-color: transparent; color: #6c757d; opacity: 1; padding: 8px 4px; }
+

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Sales History</h2>
+
+{% if sales %}
+    <p style="margin-bottom: 10px;">
+        Displaying sales {{ (current_page - 1) * per_page + 1 }} - {{ min(current_page * per_page, total_items) }} of {{ total_items }} total sales.
+        (Page {{ current_page }} of {{ total_pages if total_pages > 0 else 1 }})
+    </p>
+    <div class="table-responsive-wrapper"> {# Ensure table is wrapped for responsiveness #}
+        <table>
+            <thead>
+                <tr>
+                    <th>Sale ID</th>
+                    <th>Timestamp</th>
+                    <th>Customer</th>
+                    <th>Total Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>#{{ sale.SaleID }}</td>
+                    <td>{{ sale.SaleTimestamp }}</td>
+                    <td>{{ sale.CustomerName if sale.CustomerName else 'N/A' }}</td>
+                    <td>₱{{ "%.2f"|format(sale.TotalAmount) }}</td> {# Using PHP currency #}
+                    <td class="actions">
+                        <a href="{{ url_for('view_sale', sale_id=sale.SaleID) }}" class="view-btn">View</a>
+                        {# --- DELETE FORM --- #}
+                        <form action="{{ url_for('delete_sale', sale_id=sale.SaleID) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete Sale #{{ sale.SaleID }}? This will also delete all associated items and cannot be undone.');">
+                             {# Optionally pass current page number back to route #}
+                             <input type="hidden" name="page" value="{{ current_page }}">
+                             <button type="submit" class="delete-btn">Delete</button>
+                        </form>
+                        {# --- END DELETE FORM --- #}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Pagination Navigation #}
+    {% if total_pages > 1 %}
+    <div class="pagination" style="margin-top: 20px; text-align: center;">
+        {# First Page Link #}
+        {% if current_page > 1 %} <a href="{{ url_for('list_sales', page_num=1) }}" class="btn btn-outline-secondary">&laquo;&laquo; First</a> {% else %} <span class="btn btn-outline-secondary disabled">&laquo;&laquo; First</span> {% endif %}
+        {# Previous Page Link #}
+        {% if current_page > 1 %} <a href="{{ url_for('list_sales', page_num=current_page - 1) }}" class="btn btn-secondary">&laquo; Previous</a> {% else %} <span class="btn btn-secondary disabled">&laquo; Previous</span> {% endif %}
+        {# Page Number Links #}
+        {% set page_window = 2 %} {# Number of pages to show before/after current page #}
+        {% set start_page = max(1, current_page - page_window) %}
+        {% set end_page = min(total_pages, current_page + page_window) %}
+        {% if start_page > 1 %} <a href="{{ url_for('list_sales', page_num=1) }}" class="btn btn-outline-secondary">1</a> {% if start_page > 2 %} <span class="btn btn-outline-secondary disabled" style="border:none; background:transparent; padding: 8px 4px;">...</span> {% endif %} {% endif %}
+        {% for page in range(start_page, end_page + 1) %} {% if page == current_page %} <span class="btn btn-primary current-page">{{ page }}</span> {% else %} <a href="{{ url_for('list_sales', page_num=page) }}" class="btn btn-outline-secondary">{{ page }}</a> {% endif %} {% endfor %}
+        {% if end_page < total_pages %} {% if end_page < total_pages - 1 %} <span class="btn btn-outline-secondary disabled" style="border:none; background:transparent; padding: 8px 4px;">...</span> {% endif %} <a href="{{ url_for('list_sales', page_num=total_pages) }}" class="btn btn-outline-secondary">{{ total_pages }}</a> {% endif %}
+        {# Next Page Link #}
+        {% if current_page < total_pages %} <a href="{{ url_for('list_sales', page_num=current_page + 1) }}" class="btn btn-secondary">Next &raquo;</a> {% else %} <span class="btn btn-secondary disabled">Next &raquo;</span> {% endif %}
+        {# Last Page Link #}
+        {% if current_page < total_pages %} <a href="{{ url_for('list_sales', page_num=total_pages) }}" class="btn btn-outline-secondary">Last &raquo;&raquo;</a> {% else %} <span class="btn btn-outline-secondary disabled">Last &raquo;&raquo;</span> {% endif %}
+    </div>
+    {% endif %}
+
+{% else %}
+    <p>No sales recorded yet. <a href="{{ url_for('pos_interface') }}">Make a new sale!</a></p>
+{% endif %}
+
+{# Include pagination styles if they are not in the main style.css or need overrides #}
+{# It's better to move these to style.css if possible #}
+<style>
+    .pagination .btn { margin: 0 2px; padding: 6px 10px; font-size: 0.9em; }
+    .pagination .btn.current-page { background-color: #8DB600; color: white; border-color: #7F9F00; }
+    .pagination .btn.disabled { pointer-events: none; opacity: 0.5; }
+    .btn-outline-secondary { background-color: transparent; border: 1px solid #adb5bd; color: #6c757d; }
+    .btn-outline-secondary:hover { background-color: #e9ecef; color: #495057; }
+    .pagination .btn-outline-secondary.disabled { border: none; background-color: transparent; color: #6c757d; opacity: 1; padding: 8px 4px; }
+</style>
+
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Admin Panel</h2>
+<p>Database management tools. Use with caution.</p>
+
+<div class="admin-actions" style="margin-top: 20px; display: flex; flex-direction: column; gap: 15px; max-width: 400px;">
+
+    {# Backup Button/Link #}
+    <a href="{{ url_for('backup_database') }}" class="btn btn-info" onclick="return confirm('Create a backup of the current database?');">
+        Backup Current Database
+    </a>
+    <p><small>Creates a timestamped backup file (e.g., <code>pos_system.YYYYMMDDHHMMSS.db</code>) in the '{{ BACKUP_DIR | default('db_backups') }}' directory.</small></p>
+
+    <hr>
+
+    {# Restore Link/Section #}
+    <a href="{{ url_for('restore_database') }}" class="btn btn-danger">
+        Go to Restore Database Page
+    </a>
+     <p><small>Allows uploading a database file to overwrite the current one. Use the restore page for this critical operation.</small></p>
+
+</div>
+
+{% endblock %}

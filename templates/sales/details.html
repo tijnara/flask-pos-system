@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Sale Details - ID: #{{ sale.SaleID }}</h2>
+
+<div class="sale-info" style="margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; border: 1px solid #eee;">
+    <p><strong>Sale ID:</strong> #{{ sale.SaleID }}</p>
+    <p><strong>Timestamp:</strong> {{ sale.SaleTimestamp }}</p>
+    <p><strong>Customer:</strong> {{ sale.CustomerName if sale.CustomerName else 'N/A' }}</p>
+    <p><strong>Total Amount:</strong> ${{ "%.2f"|format(sale.TotalAmount) }}</p>
+</div>
+
+<h3>Items in this Sale:</h3>
+{% if items %}
+<table>
+    <thead>
+        <tr>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Price at Sale</th>
+            <th>Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.ProductName }}</td>
+            <td>{{ item.Quantity }}</td>
+            <td>${{ "%.2f"|format(item.PriceAtSale) }}</td> <td>${{ "%.2f"|format(item.Subtotal) }}</td>   </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No items found for this sale. This might indicate an issue with the sale record.</p>
+{% endif %}
+
+<a href="{{ url_for('list_sales') }}" class="btn btn-secondary" style="margin-top: 20px;">Back to Sales List</a>
+{% endblock %}
