@@ -50,8 +50,25 @@ def flash_errors(form):
 # --- Main Routes ---
 @app.route('/')
 def index():
-    """Main page, could be a dashboard or the POS interface."""
-    return render_template('index.html', title="POS Home")
+    """Main page, displays dashboard summary."""
+    try:
+        # Fetch data for the dashboard
+        total_sales_today = db.get_total_sales_today_db()
+        total_sales_weekly = db.get_total_sales_current_week_db()  # Fetch weekly sales
+        # items_sold_today = db.get_items_sold_today_db() # Keep commented out as per previous request
+    except Exception as e:
+        # Log error if fetching dashboard data fails
+        app.logger.error(f"Error fetching dashboard data: {e}", exc_info=True)
+        flash("Could not load dashboard data.", "error")
+        total_sales_today = 0.0
+        total_sales_weekly = 0.0  # Default weekly sales on error
+        # items_sold_today = []
+
+    return render_template('index.html',
+                           title="POS Home / Dashboard",
+                           total_sales_today=total_sales_today,
+                           total_sales_weekly=total_sales_weekly)  # Pass weekly total to template
+    # items_sold_today=items_sold_today)
 
 
 # --- Product Routes ---

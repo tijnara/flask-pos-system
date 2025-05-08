@@ -96,6 +96,8 @@ def get_product_by_id_db(product_id):
 
 def get_product_by_name_db(product_name):
     """Retrieves a single product by its name (case-sensitive)."""
+    # Note: If you need case-insensitive search here, add COLLATE NOCASE
+    # sql = "SELECT ProductID, ProductName, Price FROM Products WHERE ProductName = ? COLLATE NOCASE"
     sql = "SELECT ProductID, ProductName, Price FROM Products WHERE ProductName = ?"
     conn = None
     try:
@@ -447,6 +449,82 @@ def delete_sale_db(sale_id):
         logging.error(f"Database error deleting SaleID {sale_id}: {e}", exc_info=True)
         if conn: conn.rollback()
         return False  # Return False on error
+    finally:
+        if conn: conn.close()
+
+
+# --- Dashboard / Sales Summary Functions ---
+
+def get_total_sales_today_db():
+    """Calculates the total amount of sales made today."""
+    today_date = datetime.date.today().strftime('%Y-%m-%d')
+    # Assumes SaleTimestamp is stored as TEXT in 'YYYY-MM-DD HH:MM:SS' format
+    sql = "SELECT SUM(TotalAmount) FROM Sales WHERE DATE(SaleTimestamp) = ?"
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, (today_date,))
+        total = cursor.fetchone()[0]
+        return total if total is not None else 0.0  # Return 0.0 if no sales today
+    except sqlite3.Error as e:
+        logging.error(f"Database error getting total sales for today ({today_date}): {e}", exc_info=True)
+        return 0.0  # Return 0.0 on error
+    finally:
+        if conn: conn.close()
+
+
+def get_items_sold_today_db():
+    """Gets a summary of items sold today (ProductName and total Quantity)."""
+    today_date = datetime.date.today().strftime('%Y-%m-%d')
+    # Join Sales and SaleItems, filter by today's date, group by product name and sum quantity
+    sql = """
+          SELECT si.ProductName, SUM(si.Quantity) as TotalQuantity
+          FROM SaleItems si
+                   JOIN Sales s ON si.SaleID = s.SaleID
+          WHERE DATE (s.SaleTimestamp) = ?
+          GROUP BY si.ProductName
+          ORDER BY TotalQuantity DESC, si.ProductName \
+          """
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, (today_date,))
+        items_summary = cursor.fetchall()
+        return items_summary  # Returns a list of Row objects
+    except sqlite3.Error as e:
+        logging.error(f"Database error getting items sold today ({today_date}): {e}", exc_info=True)
+        return []  # Return empty list on error
+    finally:
+        if conn: conn.close()
+
+
+def get_total_sales_current_week_db():
+    """Calculates the total amount of sales made in the current week (Mon-Today)."""
+    today = datetime.date.today()
+    # Calculate days to subtract to get to the previous Monday (weekday() is 0 for Mon, 6 for Sun)
+    days_since_monday = today.weekday()
+    start_of_week = today - datetime.timedelta(days=days_since_monday)
+
+    start_date_str = start_of_week.strftime('%Y-%m-%d')
+    end_date_str = today.strftime('%Y-%m-%d')  # Today is included
+
+    # Assumes SaleTimestamp is stored as TEXT in 'YYYY-MM-DD HH:MM:SS' format
+    # We compare the DATE part of the timestamp.
+    sql = "SELECT SUM(TotalAmount) FROM Sales WHERE DATE(SaleTimestamp) >= ? AND DATE(SaleTimestamp) <= ?"
+    conn = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, (start_date_str, end_date_str))
+        total = cursor.fetchone()[0]
+        logging.info(f"Fetched current week sales total ({start_date_str} to {end_date_str}): {total}")
+        return total if total is not None else 0.0  # Return 0.0 if no sales in the period
+    except sqlite3.Error as e:
+        logging.error(f"Database error getting total sales for current week ({start_date_str} to {end_date_str}): {e}",
+                      exc_info=True)
+        return 0.0  # Return 0.0 on error
     finally:
         if conn: conn.close()
 
