@@ -9,6 +9,7 @@ import shutil
 from werkzeug.utils import secure_filename
 import math  # For math.ceil
 import logging  # Import logging module
+from functools import wraps  # For API key decorator
 
 app = Flask(__name__)
 app.secret_key = "your_very_secret_key"  # Important for session management and flash messages
@@ -17,6 +18,9 @@ app.secret_key = "your_very_secret_key"  # Important for session management and 
 DATABASE_FILE = "pos_system.db"  # Name of your SQLite database file
 BACKUP_DIR = "db_backups"  # Directory to store database backups
 ITEMS_PER_PAGE = 10  # Number of items (sales, customers, etc.) to display per page
+# --- VERY BASIC API SECURITY ---
+# In a real app, use proper authentication and load keys securely (e.g., environment variables)
+VALID_API_KEYS = {"YOUR_SUPER_SECRET_API_KEY_12345"}  # A set of valid keys
 
 # Configure basic logging for the Flask app itself
 # Logs will go to the console where the app is running.
@@ -45,6 +49,31 @@ def flash_errors(form):
     # This function is a placeholder if you're not using a form library that populates form.errors
     # If using request.form directly, error handling is done within routes.
     pass  # Currently not used with direct request.form handling
+
+
+# --- API Key Decorator ---
+def require_api_key(f):
+    """Decorator to protect API routes with a simple key check."""
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        api_key = None
+        # Check for key in headers (common practice) or request data/args
+        if 'X-API-KEY' in request.headers:
+            api_key = request.headers['X-API-KEY']
+        elif 'api_key' in request.args:  # Check query parameters
+            api_key = request.args['api_key']
+        elif request.is_json and 'api_key' in request.json:  # Check JSON body
+            api_key = request.json['api_key']
+        elif 'api_key' in request.form:  # Check form data
+            api_key = request.form['api_key']
+
+        if not api_key or api_key not in VALID_API_KEYS:
+            app.logger.warning(f"Unauthorized API access attempt. Key used: {api_key}")
+            return jsonify({"error": "Unauthorized - Invalid or missing API key"}), 401
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 
 # --- Main Routes ---
@@ -602,19 +631,109 @@ def backup_database():
 
 # --- API Endpoints ---
 @app.route('/api/products', methods=['GET'])
+@require_api_key  # Protect this endpoint
 def api_get_products():
     """Returns a list of all products in JSON format."""
-    products = db.get_all_products_db();
-    products_list = [dict(p) for p in products];
-    return jsonify(products_list)
+    try:
+        products = db.get_all_products_db()
+        products_list = [dict(p) for p in products]
+        return jsonify(products_list)
+    except Exception as e:
+        app.logger.error(f"API Error getting products: {e}", exc_info=True)
+        return jsonify({"error": "Internal server error fetching products"}), 500
 
 
 @app.route('/api/products/<string:name>', methods=['GET'])
+@require_api_key  # Protect this endpoint
 def api_get_product_by_name(name):
     """Returns a specific product by name in JSON format."""
-    product = db.get_product_by_name_db(name);
-    if product: return jsonify(dict(product))
-    return jsonify({"error": "Product not found"}), 404
+    try:
+        product = db.get_product_by_name_db(name);
+        if product: return jsonify(dict(product))
+        return jsonify({"error": "Product not found"}), 404
+    except Exception as e:
+        app.logger.error(f"API Error getting product by name '{name}': {e}", exc_info=True)
+        return jsonify({"error": "Internal server error fetching product"}), 500
+
+
+@app.route('/api/sales', methods=['POST'])
+@require_api_key  # Apply the API key protection
+def api_sync_sale():
+    """
+    API endpoint to receive and record a sale from an external source (e.g., SeasidePOS).
+    Expects JSON data in the request body:
+    {
+        "customer_name": "Customer Name", // Or "N/A"
+        "items": [
+            {"name": "Product A", "quantity": 2, "price_at_sale": 10.00},
+            {"name": "Product B", "quantity": 1, "price_at_sale": 25.50}
+        ],
+        "api_key": "YOUR_SECRET_API_KEY" // Can be passed in JSON body
+    }
+    """
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    data = request.get_json()
+
+    if not data: return jsonify({"error": "No data provided"}), 400
+    if 'items' not in data or not isinstance(data['items'], list) or not data['items']:
+        return jsonify({"error": "Missing or invalid 'items' list"}), 400
+
+    customer_name = data.get('customer_name', 'N/A')
+    items = data['items']
+
+    sale_id = None
+    try:
+        sale_id = db.create_sale_db(customer_name=customer_name)
+        if not sale_id:
+            return jsonify({"error": "Failed to create sale record on server"}), 500
+
+        total_calculated = 0.0
+        for item_data in items:
+            name = item_data.get('name')
+            qty_str = item_data.get('quantity')
+            price_str = item_data.get('price_at_sale')
+            if not name or qty_str is None or price_str is None:
+                app.logger.error(f"API Sync Error: Invalid item data for SaleID {sale_id}: {item_data}")
+                continue
+
+            try:
+                qty = int(qty_str)
+                price = float(price_str)
+                if qty <= 0 or price < 0:
+                    app.logger.error(f"API Sync Error: Invalid qty/price for item '{name}' in SaleID {sale_id}")
+                    continue
+
+                if not db.add_sale_item_db(sale_id, name, qty, price):
+                    app.logger.error(f"API Sync Error: Failed to add item '{name}' to SaleID {sale_id} in DB.")
+                else:
+                    total_calculated += qty * price
+            except (ValueError, TypeError):
+                app.logger.error(f"API Sync Error: Invalid number format for item '{name}' in SaleID {sale_id}")
+                continue
+
+                # Update the final total amount in the Sales table
+        conn = None
+        try:
+            conn = db.get_db_connection();
+            cursor = conn.cursor()
+            cursor.execute("SELECT SUM(Subtotal) FROM SaleItems WHERE SaleID = ?", (sale_id,))
+            db_total = cursor.fetchone()[0] or 0.0
+            cursor.execute("UPDATE Sales SET TotalAmount = ? WHERE SaleID = ?", (db_total, sale_id))
+            conn.commit()
+            app.logger.info(f"API Sync: Updated final total for SaleID {sale_id} to {db_total}")
+        except db.sqlite3.Error as e:
+            app.logger.error(f"API Sync Error: Failed to update final total for SaleID {sale_id}: {e}", exc_info=True)
+            return jsonify({"error": "Sale items added but failed to update final total", "sale_id": sale_id}), 500
+        finally:
+            if conn: conn.close()
+
+        return jsonify({"message": "Sale synchronized successfully", "sale_id": sale_id}), 201  # 201 Created
+
+    except Exception as e:
+        app.logger.error(f"API Sync Error: Unexpected error processing sale: {e}", exc_info=True)
+        return jsonify({"error": "An unexpected error occurred on the server"}), 500
 
 
 if __name__ == '__main__':
