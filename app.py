@@ -12,7 +12,7 @@ import logging  # Import logging module
 from functools import wraps  # For API key decorator
 
 app = Flask(__name__)
-app.secret_key = "your_very_secret_key"  # Important for session management and flash messages
+app.secret_key = "aranjit30"  # Important for session management and flash messages
 
 # --- Configuration for Database and Backups ---
 DATABASE_FILE = "pos_system.db"  # Name of your SQLite database file
