@@ -55,14 +55,132 @@ header h1 {
 }
 
 /* Navigation Styling */
-nav ul {
-    padding: 0; list-style: none; text-align: center;
-    background: #6A8A00; margin-bottom: 10px; /* Reduced margin */
+nav.main-nav { /* Target the nav element with the new class */
+    background: #6A8A00; /* Darker Apple Green */
+    color: #fff;
+    padding: 0.5rem 1rem; /* Add some padding */
+    position: relative; /* For positioning the toggle button */
+    margin-bottom: 10px;
 }
-nav ul li { display: block; border-bottom: 1px solid #7F9F00; }
-nav ul li:last-child { border-bottom: none; }
-nav ul li a { color: #ffffff; text-decoration: none; padding: 10px 15px; display: block; }
-nav ul li a:hover { background: #7F9F00; }
+
+.nav-toggle {
+    display: none; /* Hidden by default, shown on small screens */
+    background: transparent;
+    border: 0;
+    color: white;
+    font-size: 1.5rem; /* Size of the hamburger icon */
+    cursor: pointer;
+    padding: 0.5em;
+    position: absolute; /* Position it within the nav bar */
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1001; /* Ensure it's above other nav elements */
+}
+
+.hamburger {
+    display: block;
+    position: relative;
+}
+
+.hamburger,
+.hamburger::before,
+.hamburger::after {
+    content: '';
+    display: block;
+    background: white;
+    height: 3px;
+    width: 1.5em; /* Width of hamburger lines */
+    border-radius: 3px;
+    transition: transform 0.3s ease-in-out, opacity 0.2s ease;
+}
+
+.hamburger::before {
+    position: absolute;
+    bottom: 7px; /* Spacing of lines */
+}
+
+.hamburger::after {
+    position: absolute;
+    top: 7px; /* Spacing of lines */
+}
+
+/* Hamburger animation when active (nav-open class added by JS) */
+.nav-open .hamburger {
+    transform: rotate(0.625turn); /* Rotates to form an X */
+}
+.nav-open .hamburger::before {
+    opacity: 0; /* Hide middle line */
+}
+.nav-open .hamburger::after {
+    transform: rotate(90deg) translateX(-7px); /* Adjust to form X */
+}
+
+
+nav.main-nav ul.nav-links {
+    padding: 0;
+    list-style: none;
+    text-align: center;
+    /* Default: Horizontal for wider screens */
+    display: flex; /* Use flex for horizontal layout */
+    justify-content: center; /* Center items */
+    align-items: center;
+}
+
+nav.main-nav ul.nav-links li {
+    /* display: inline-block; */ /* No longer needed with flex */
+    border-bottom: none; /* Remove bottom border for horizontal items */
+    margin: 0 0.5rem; /* Spacing between horizontal items */
+}
+
+nav.main-nav ul.nav-links li a {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 15px;
+    display: block; /* Keep block for consistent padding */
+    transition: background-color 0.2s ease;
+}
+
+nav.main-nav ul.nav-links li a:hover {
+    background: #7F9F00; /* Lighter shade for hover */
+}
+
+
+/* --- Styles for Small Screens (Dropdown Behavior) --- */
+@media (max-width: 767px) { /* Adjust breakpoint as needed */
+    .nav-toggle {
+        display: block; /* Show hamburger button */
+    }
+
+    nav.main-nav ul.nav-links {
+        display: none; /* Hide links by default */
+        position: absolute;
+        background: #6A8A00; /* Match nav background */
+        left: 0;
+        right: 0;
+        top: 100%; /* Position below the nav bar */
+        flex-direction: column; /* Stack links vertically */
+        text-align: left; /* Align text to the left in dropdown */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 1000; /* Ensure dropdown is above other content */
+    }
+
+    nav.main-nav ul.nav-links.nav-open { /* Class added by JS to show dropdown */
+        display: flex;
+    }
+
+    nav.main-nav ul.nav-links li {
+        width: 100%; /* Make list items take full width */
+        margin: 0; /* Remove horizontal margin */
+        border-bottom: 1px solid #7F9F00; /* Separator for dropdown items */
+    }
+    nav.main-nav ul.nav-links li:last-child {
+        border-bottom: none;
+    }
+    nav.main-nav ul.nav-links li a {
+        padding: 1rem; /* Adjust padding for dropdown items */
+    }
+}
 
 
 /* Flash Messages */
@@ -120,18 +238,6 @@ nav ul li a:hover { background: #7F9F00; }
 
 
 /* --- POS Layout Specific Styles --- */
-/* Remove container styles specifically for POS page if needed */
-/* Add class="pos-page" to <body> tag in base.html if you want this */
-/* body.pos-page main.container {
-     width: 95%;
-     max-width: 1300px;
-     margin: 10px auto;
-     padding: 0;
-     background-color: transparent;
-     box-shadow: none;
-     border-radius: 0;
-} */
-
 .pos-grid-container {
     display: flex;
     flex-direction: column; /* Stack vertically on small screens */
@@ -306,7 +412,10 @@ footer p { margin: 0; }
 /* Media Queries for Responsiveness */
 @media (min-width: 768px) { /* Tablets and wider */
     header h1 { font-size: 1.8rem; }
-    nav ul li { display: inline-block; border-bottom: none; }
+    nav.main-nav ul.nav-links li { /* Target specific nav links for desktop */
+        display: inline-block; 
+        border-bottom: none; 
+    }
     .pos-grid-container { flex-direction: row; }
     .pos-add-to-sale { width: 40%; }
     .pos-current-sale-panel { width: 60%; }

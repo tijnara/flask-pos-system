@@ -21,12 +21,13 @@
             </form>
             {% endfor %}
 
-            {# Custom Sale Button - Always display near top #}
+            {# Custom Sale Button (Always prioritized) #}
             <button type="button" id="customSaleBtn" class="product-btn custom-sale-btn">
                  Custom Sale<br><span class="price">(₱0.00)</span>
             </button>
+            {# --- End Prioritized Buttons --- #}
 
-            {# --- Other Product Buttons --- #}
+             {# --- Other Product Buttons --- #}
             {% for p in other_products %}
              <form method="POST" action="{{ url_for('pos_interface') }}">
                 <input type="hidden" name="action" value="add_item">
@@ -37,6 +38,7 @@
                 </button>
             </form>
             {% endfor %}
+             {# --- End Other Product Buttons --- #}
         </div>
     </div>
 
@@ -93,7 +95,20 @@
                     {% endif %}
                 </tbody>
             </table>
-        </div>
+        </div> {# End of current-sale-items-list #}
+
+        {# --- MOVED Flash Messages Here --- #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages" style="margin-top: 10px; margin-bottom:10px;"> {# Added some margin #}
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        {# --- END MOVED Flash Messages --- #}
+
 
         {# Customer Selection Area #}
         <div class="customer-area">
@@ -106,7 +121,7 @@
                  </datalist>
                  <button type="submit" class="btn btn-info btn-pos-action">Set</button>
              </form>
-             <span class="latest-customer">Selected Customer: {{ current_customer }}</span>
+             <span class="latest-customer">Latest Customer: {{ current_customer }}</span>
         </div>
 
         {# Finalize and Total Area #}
@@ -130,43 +145,33 @@
 
 </div>
 
-{# --- Custom Sale Modal --- #}
+{# --- Custom Sale Modal (Keep as is) --- #}
 <div id="customSaleModal" class="modal">
     <div class="modal-content">
         <span class="close-button">&times;</span>
         <h2>Custom Sale Item</h2>
         <form id="customSaleForm" method="POST" action="{{ url_for('pos_interface') }}">
             <input type="hidden" name="action" value="add_custom_item">
-
             <div class="form-group">
                 <label for="custom_product_name">Product:</label>
-                {# --- MODIFIED: Changed input to select --- #}
                 <select id="custom_product_name" name="custom_product_name" class="form-control" required>
                     <option value="" disabled selected>-- Select Product --</option>
-                    {# Loop through all available products (prioritized + others) #}
                     {% for p in prioritized_products %}
                         <option value="{{ p.ProductName }}">{{ p.ProductName }}</option>
                     {% endfor %}
                      {% for p in other_products %}
                         <option value="{{ p.ProductName }}">{{ p.ProductName }}</option>
                     {% endfor %}
-                     {# Optionally add a generic 'Custom Item' if needed #}
-                     {# <option value="Custom Item">Custom Item (Specify Price)</option> #}
                 </select>
-                 {# --- END MODIFICATION --- #}
             </div>
-
             <div class="form-group">
                 <label for="custom_price">Custom Price:</label>
                 <input type="number" id="custom_price" name="custom_price" step="0.01" min="0" required placeholder="Enter price for selected item">
-                 {# Consider disabling this unless a specific 'Custom Item' option is chosen #}
             </div>
-
             <div class="form-group">
                 <label for="custom_quantity">Quantity:</label>
                 <input type="number" id="custom_quantity" name="custom_quantity" value="1" min="1" required>
             </div>
-
             <div class="modal-actions">
                 <button type="submit" class="btn btn-success">Add to Sale</button>
                 <button type="button" class="btn btn-secondary cancel-button">Cancel</button>

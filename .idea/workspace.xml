@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5865b67f-5462-412d-a9b4-10c0f6987d93" name="Changes" comment="configured app.py">
+    <list default="true" id="5865b67f-5462-412d-a9b4-10c0f6987d93" name="Changes" comment="added a login/logout function">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pos_system.db" beforeDir="false" afterPath="$PROJECT_DIR$/pos_system.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/css/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/js/script.js" beforeDir="false" afterPath="$PROJECT_DIR$/static/js/script.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/pos/interface.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/pos/interface.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,8 +68,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-f27c65a3e318-JavaScript-PY-251.23774.444" />
-        <option value="bundled-python-sdk-890ed5b35930-d9c5bdb153f4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.23774.444" />
+        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-PY-251.25410.122" />
+        <option value="bundled-python-sdk-880ecab49056-36ea0e71a18c-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-251.25410.122" />
       </set>
     </attachedChunks>
   </component>
@@ -80,7 +82,8 @@
       <updated>1746658049118</updated>
       <workItem from="1746658050283" duration="15088000" />
       <workItem from="1746712858204" duration="3285000" />
-      <workItem from="1746752631212" duration="1446000" />
+      <workItem from="1746752631212" duration="2444000" />
+      <workItem from="1746755163032" duration="1253000" />
     </task>
     <task id="LOCAL-00001" summary="first commit and push">
       <option name="closed" value="true" />
@@ -146,7 +149,15 @@
       <option name="project" value="LOCAL" />
       <updated>1746716647570</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="added a login/logout function">
+      <option name="closed" value="true" />
+      <created>1746754278934</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1746754278934</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -157,11 +168,12 @@
     <MESSAGE value="today's sales and weekly sales" />
     <MESSAGE value="deleted requirement.txt.txt" />
     <MESSAGE value="configured app.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="configured app.py" />
+    <MESSAGE value="added a login/logout function" />
+    <option name="LAST_COMMIT_MESSAGE" value="added a login/logout function" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/OnlinePOS$database_setup.coverage" NAME="database_setup Coverage Results" MODIFIED="1746689341466" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/OnlinePOS$db_operations.coverage" NAME="db_operations Coverage Results" MODIFIED="1746701984138" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/OnlinePOS$app.coverage" NAME="app Coverage Results" MODIFIED="1746753770583" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/OnlinePOS$app.coverage" NAME="app Coverage Results" MODIFIED="1746755819662" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

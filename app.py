@@ -1,5 +1,5 @@
 # app.py
-# Description: The main Flask application file with login.
+# Description: The main Flask application file, configured for deployment.
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session  # Added session
 import db_operations as db
@@ -18,8 +18,10 @@ app = Flask(__name__)
 # Load from environment variable in production!
 app.secret_key = os.environ.get("SECRET_KEY", "a_default_development_secret_key_123!@#")
 if app.secret_key == "a_default_development_secret_key_123!@#" and os.environ.get("FLASK_ENV") != "development":
-    app.logger.warning(
-        "SECURITY WARNING: Using default SECRET_KEY. Set the SECRET_KEY environment variable in production.")
+    # Use app.logger which is available after app is created
+    with app.app_context():
+        app.logger.warning(
+            "SECURITY WARNING: Using default SECRET_KEY. Set the SECRET_KEY environment variable in production.")
 # --- End Secret Key Configuration ---
 
 
@@ -33,24 +35,38 @@ HARDCODED_PASSWORD = "password123"
 DATABASE_FILE = "pos_system.db"
 BACKUP_DIR = "db_backups"
 ITEMS_PER_PAGE = 10
-api_keys_str = os.environ.get("VALID_API_KEYS", "YOUR_SUPER_SECRET_API_KEY_12345")
+api_keys_str = os.environ.get("VALID_API_KEYS", "YOUR_SUPER_SECRET_API_KEY_12345")  # Default only for testing
 VALID_API_KEYS = set(key.strip() for key in api_keys_str.split(',') if key.strip())
+# Log warning if default/no API key is used
+if not VALID_API_KEYS or "YOUR_SUPER_SECRET_API_KEY_12345" in VALID_API_KEYS:
+    with app.app_context():
+        app.logger.warning(
+            "SECURITY WARNING: Using default or no API keys. Set the VALID_API_KEYS environment variable.")
 
+# Configure basic logging for the Flask app itself
+# Logs will go to the console where the app is running or captured by the server (like PythonAnywhere).
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+# Create backup directory if it doesn't exist
+# Use absolute path based on app.root_path for reliability on server
 backup_dir_path = os.path.join(app.root_path, BACKUP_DIR)
 if not os.path.exists(backup_dir_path):
     try:
         os.makedirs(backup_dir_path)
-        app.logger.info(f"Created backup directory at: {backup_dir_path}")
+        # Use Flask's built-in logger after app is initialized
+        with app.app_context():
+            app.logger.info(f"Created backup directory at: {backup_dir_path}")
     except OSError as e:
-        app.logger.error(f"Could not create backup directory {backup_dir_path}: {e}")
+        # Use Flask's logger here too
+        with app.app_context():
+            app.logger.error(f"Could not create backup directory {backup_dir_path}: {e}")
 
 
 # --- Context Processors ---
 @app.context_processor
 def utility_processor():
-    # Inject 'now', 'min', 'max', and 'logged_in' status into templates
+    """Injects utility functions into the template context."""
+    # Make the 'now' function (for local time), 'min', and 'max' functions available in templates
     return {'now': datetime.datetime.now,
             'min': min,
             'max': max,
@@ -71,9 +87,12 @@ def login_required(f):
 
 # --- API Key Decorator ---
 def require_api_key(f):
+    """Decorator to protect API routes with a simple key check."""
+
     @wraps(f)
     def decorated_function(*args, **kwargs):
         api_key = None
+        # Check for key in headers (common practice) or request data/args
         if 'X-API-KEY' in request.headers:
             api_key = request.headers['X-API-KEY']
         elif 'api_key' in request.args:
@@ -745,6 +764,6 @@ if __name__ == '__main__':
     print(f"Backups: '{os.path.abspath(BACKUP_DIR)}'.")
     print(f"URL: http://127.0.0.1:5000");
     print("-" * 68)
-    # Ensure debug is True for local development/testing
+     #Ensure debug is True for local development/testing
     app.run(debug=True)
 # --- End Re-added block ---

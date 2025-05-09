@@ -3,43 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEASIDE - {{ title }}</title>
+    <title>{{ title }} - My POS</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="site-content"> <header>
-            <h1>SEASIDE</h1>
+            <h1>My Simple POS System</h1>
         </header>
-        <nav>
-            <ul>
-                {# Show links only if logged in #}
+        <nav class="main-nav">
+            <button class="nav-toggle" aria-label="toggle navigation" aria-expanded="false">
+                <span class="hamburger"></span>
+            </button>
+            <ul class="nav-links">
                 {% if logged_in %} 
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('pos_interface') }}">New Sale (POS)</a></li>
                     <li><a href="{{ url_for('list_products') }}">Manage Products</a></li>
                     <li><a href="{{ url_for('list_customers') }}">Manage Customers</a></li>
                     <li><a href="{{ url_for('list_sales') }}">Sales History</a></li>
-                    {# --- Admin and Logout Links Together --- #}
                     <li><a href="{{ url_for('admin_index') }}">Admin</a></li>
                     <li><a href="{{ url_for('logout') }}">Logout</a></li> 
-                    {# --- End Admin/Logout Links --- #}
                 {% else %}
-                    {# Maybe show only login if not logged in? Or nothing in nav. #}
                     {# <li><a href="{{ url_for('login') }}">Login</a></li> #}
                 {% endif %}
             </ul>
         </nav>
         <main class="container">
-            {# Flash messages moved here to be visible even on login page if redirected #}
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <ul class="flash-messages">
-                    {% for category, message in messages %}
-                        <li class="{{ category }}">{{ message }}</li>
-                    {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
+            {# --- Flash Messages REMOVED from base.html --- #}
+            {# Flash messages should now be handled by individual templates if needed #}
+            {# For example, in pos/interface.html or login.html #}
+            
             <div class="content">
                 {% block content %}{% endblock %}
             </div>

@@ -34,16 +34,25 @@ document.addEventListener('DOMContentLoaded', function() {
             if(customSaleForm) {
                const priceInput = customSaleForm.querySelector('#custom_price');
                const qtyInput = customSaleForm.querySelector('#custom_quantity');
-               const nameInput = customSaleForm.querySelector('#custom_product_name');
+               const nameInput = customSaleForm.querySelector('#custom_product_name'); // Changed from #custom_product_name_select
+               
                if(priceInput) priceInput.value = ''; // Clear price
                if(qtyInput) qtyInput.value = '1'; // Reset quantity to 1
-               if(nameInput) nameInput.value = 'Custom Item'; // Reset name
+               
+               // If it's a select dropdown for product name, reset to the first (disabled) option
+               if(nameInput && nameInput.tagName === 'SELECT'){
+                   nameInput.selectedIndex = 0; 
+               } else if (nameInput) { // If it's a text input
+                   nameInput.value = 'Custom Item'; // Reset name for text input
+               }
             }
-            // Optional: Focus the first input field (product name)
-            const firstInput = customSaleForm ? customSaleForm.querySelector('#custom_product_name') : null;
+            // Optional: Focus the first input field (product name or select)
+            const firstInput = customSaleForm ? (customSaleForm.querySelector('#custom_product_name') || customSaleForm.querySelector('input[type="number"]')) : null;
             if (firstInput) {
                 firstInput.focus();
-                firstInput.select(); // Select the default text
+                if(firstInput.tagName !== 'SELECT' && firstInput.select) { // Only call select() on text inputs
+                    firstInput.select(); 
+                }
             }
         }
     }
@@ -82,11 +91,11 @@ document.addEventListener('DOMContentLoaded', function() {
         customSaleForm.addEventListener('submit', function(event) {
             const priceInput = customSaleForm.querySelector('#custom_price');
             const quantityInput = customSaleForm.querySelector('#custom_quantity');
-            const nameInput = customSaleForm.querySelector('#custom_product_name');
+            const nameInput = customSaleForm.querySelector('#custom_product_name'); // This could be a select or input
             let isValid = true;
 
             if (!nameInput || nameInput.value.trim() === '') {
-                 alert('Please enter a product name.');
+                 alert('Please select or enter a product name.');
                  isValid = false;
                  if(nameInput) nameInput.focus();
             }
@@ -107,6 +116,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // If using AJAX, you would preventDefault always and handle submission here.
             // For standard POST, we let it submit if valid. The modal will close implicitly
             // when the page reloads after the POST request is handled by Flask.
+        });
+    }
+
+    // --- Mobile Navigation Toggle ---
+    const navToggle = document.querySelector('.nav-toggle');
+    const navLinks = document.querySelector('.nav-links');
+
+    if (navToggle && navLinks) {
+        navToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('nav-open'); // Toggle class to show/hide
+            // Toggle aria-expanded attribute for accessibility
+            const isExpanded = navLinks.classList.contains('nav-open');
+            navToggle.setAttribute('aria-expanded', isExpanded);
+            // Toggle class on body to prevent scrolling when nav is open (optional)
+            // You would need to add 'overflow: hidden;' to 'body.nav-active' in your CSS
+            document.body.classList.toggle('nav-active', isExpanded); 
         });
     }
 
