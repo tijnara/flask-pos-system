@@ -3,35 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEASIDE ({{ title }})</title>
+    <title>SEASIDE - {{ title|default("POS System") }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    {% block head_extra %}{% endblock %}
 </head>
 <body>
-    <div class="site-content"> <header>
-            <h1>SEASIDE</h1>
+    <div class="site-content">
+        <header>
+            <h1><i class="fas fa-water"></i> SEASIDE</h1>
         </header>
         <nav class="main-nav">
             <button class="nav-toggle" aria-label="toggle navigation" aria-expanded="false">
                 <span class="hamburger"></span>
             </button>
             <ul class="nav-links">
-                {% if logged_in %} 
-                    <li><a href="{{ url_for('index') }}">Home</a></li>
-                    <li><a href="{{ url_for('pos_interface') }}">New Sale (POS)</a></li>
-                    <li><a href="{{ url_for('list_products') }}">Manage Products</a></li>
-                    <li><a href="{{ url_for('list_customers') }}">Manage Customers</a></li>
-                    <li><a href="{{ url_for('list_sales') }}">Sales History</a></li>
-                    <li><a href="{{ url_for('reports_page') }}">Reports</a></li> {# <-- ADDED REPORTS LINK #}
-                    <li><a href="{{ url_for('admin_index') }}">Admin</a></li>
-                    <li><a href="{{ url_for('logout') }}">Logout</a></li> 
+                {% if logged_in %}
+                    <li><a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="{{ url_for('pos_interface') }}" class="{% if request.endpoint == 'pos_interface' %}active{% endif %}"><i class="fas fa-cash-register"></i> New Sale</a></li>
+                    <li><a href="{{ url_for('list_products') }}" class="{% if request.endpoint == 'list_products' %}active{% endif %}"><i class="fas fa-box-open"></i> Products</a></li>
+                    <li><a href="{{ url_for('list_customers') }}" class="{% if request.endpoint == 'list_customers' %}active{% endif %}"><i class="fas fa-users"></i> Customers</a></li>
+                    <li><a href="{{ url_for('list_sales') }}" class="{% if request.endpoint == 'list_sales' %}active{% endif %}"><i class="fas fa-history"></i> Sales History</a></li>
+                    
+                    <li class="nav-item-dropdown {% if request.endpoint in ['weekly_reports_page', 'monthly_reports_page'] %}active-parent{% endif %}">
+                        <a href="#" class="dropdown-toggle-link"><i class="fas fa-chart-line"></i> Reports <span class="dropdown-arrow">&#9662;</span></a>
+                        <ul class="dropdown-menu-actual">
+                            <li>
+                                <a href="{{ url_for('weekly_reports_page') }}" class="{% if request.endpoint == 'weekly_reports_page' %}active{% endif %}">
+                                    <i class="fas fa-calendar-week"></i> Weekly Report
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('monthly_reports_page') }}" class="{% if request.endpoint == 'monthly_reports_page' %}active{% endif %}">
+                                    <i class="fas fa-calendar-alt"></i> Monthly Report
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li><a href="{{ url_for('admin_index') }}" class="{% if request.endpoint == 'admin_index' %}active{% endif %}"><i class="fas fa-cogs"></i> Admin</a></li>
+                    <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 {% else %}
-                    {# <li><a href="{{ url_for('login') }}">Login</a></li> #}
+                    {# <li><a href="{{ url_for('login') }}" class="{% if request.endpoint == 'login' %}active{% endif %}">Login</a></li> #}
                 {% endif %}
             </ul>
         </nav>
         <main class="container">
-            {# --- Flash Messages REMOVED from base.html --- #}
-            {# Flash messages should now be handled by individual templates if needed #}
+            {# --- MODIFIED: Wrapped flash messages in a block --- #}
+            {% block global_flash_messages %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            {% endblock global_flash_messages %}
             
             <div class="content">
                 {% block content %}{% endblock %}
@@ -42,6 +71,8 @@
         <p style="text-align:center; color: #777;">&copy; {{ now().year }} POS System</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

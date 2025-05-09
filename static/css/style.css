@@ -53,29 +53,32 @@ header h1 {
     margin: 0;
     font-size: 1.5rem; /* Smaller header text */
 }
+header h1 i { /* Style for icon in header */
+    margin-right: 8px;
+}
 
 /* Navigation Styling */
-nav.main-nav { /* Target the nav element with the new class */
+nav.main-nav {
     background: #6A8A00; /* Darker Apple Green */
     color: #fff;
-    padding: 0.5rem 1rem; /* Add some padding */
-    position: relative; /* For positioning the toggle button */
+    padding: 0.5rem 1rem;
+    position: relative; 
     margin-bottom: 10px;
 }
 
 .nav-toggle {
-    display: none; /* Hidden by default, shown on small screens */
+    display: none; 
     background: transparent;
     border: 0;
     color: white;
-    font-size: 1.5rem; /* Size of the hamburger icon */
+    font-size: 1.5rem; 
     cursor: pointer;
     padding: 0.5em;
-    position: absolute; /* Position it within the nav bar */
+    position: absolute; 
     right: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 1001; /* Ensure it's above other nav elements */
+    z-index: 1001; 
 }
 
 .hamburger {
@@ -90,30 +93,29 @@ nav.main-nav { /* Target the nav element with the new class */
     display: block;
     background: white;
     height: 3px;
-    width: 1.5em; /* Width of hamburger lines */
+    width: 1.5em; 
     border-radius: 3px;
     transition: transform 0.3s ease-in-out, opacity 0.2s ease;
 }
 
 .hamburger::before {
     position: absolute;
-    bottom: 7px; /* Spacing of lines */
+    bottom: 7px; 
 }
 
 .hamburger::after {
     position: absolute;
-    top: 7px; /* Spacing of lines */
+    top: 7px; 
 }
 
-/* Hamburger animation when active (nav-open class added by JS) */
 .nav-open .hamburger {
-    transform: rotate(0.625turn); /* Rotates to form an X */
+    transform: rotate(0.625turn); 
 }
 .nav-open .hamburger::before {
-    opacity: 0; /* Hide middle line */
+    opacity: 0; 
 }
 .nav-open .hamburger::after {
-    transform: rotate(90deg) translateX(-7px); /* Adjust to form X */
+    transform: rotate(90deg) translateX(-7px); 
 }
 
 
@@ -121,89 +123,191 @@ nav.main-nav ul.nav-links {
     padding: 0;
     list-style: none;
     text-align: center;
-    /* Default: Horizontal for wider screens */
-    display: flex; /* Use flex for horizontal layout */
-    justify-content: center; /* Center items */
+    display: flex; 
+    justify-content: center; 
     align-items: center;
 }
 
-nav.main-nav ul.nav-links li {
-    /* display: inline-block; */ /* No longer needed with flex */
-    border-bottom: none; /* Remove bottom border for horizontal items */
-    margin: 0 0.5rem; /* Spacing between horizontal items */
+nav.main-nav ul.nav-links > li { /* Target direct children li for main nav items */
+    margin: 0 0.3rem; /* Slightly reduced margin for more items */
+    position: relative; /* Crucial for dropdown positioning */
 }
 
-nav.main-nav ul.nav-links li a {
+nav.main-nav ul.nav-links > li > a {
     color: #ffffff;
     text-decoration: none;
-    padding: 10px 15px;
-    display: block; /* Keep block for consistent padding */
+    padding: 10px 12px; /* Adjusted padding */
+    display: block; 
     transition: background-color 0.2s ease;
+    border-radius: 4px; /* Add border-radius to all main links */
+}
+nav.main-nav ul.nav-links > li > a i { /* Styling for icons in nav links */
+    margin-right: 6px;
 }
 
-nav.main-nav ul.nav-links li a:hover {
-    background: #7F9F00; /* Lighter shade for hover */
+nav.main-nav ul.nav-links > li > a:hover,
+nav.main-nav ul.nav-links > li > a.active, /* Active state for regular links */
+nav.main-nav ul.nav-links > li.active-parent > a.dropdown-toggle-link { /* Active state for dropdown parent */
+    background: #7F9F00; /* Lighter shade for hover/active */
+}
+
+
+/* --- Dropdown Specific Styles --- */
+.nav-item-dropdown > a.dropdown-toggle-link { /* Style the main dropdown trigger link */
+    cursor: pointer; /* Indicate it's clickable */
+}
+
+.dropdown-toggle-link .dropdown-arrow {
+    font-size: 0.7em; /* Smaller arrow */
+    margin-left: 5px;
+    display: inline-block;
+    vertical-align: middle;
+    transition: transform 0.3s ease;
+}
+
+/* Rotate arrow when dropdown is hovered or open (via JS) */
+.nav-item-dropdown:hover > .dropdown-toggle-link .dropdown-arrow,
+.nav-item-dropdown.open > .dropdown-toggle-link .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+ul.dropdown-menu-actual { /* Styles for the actual dropdown menu ul */
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: absolute; 
+    top: 100%; 
+    left: 0;
+    background-color: #5e7a00; /* Slightly darker than nav hover for distinction */
+    border: 1px solid #7F9F00; /* Border matching hover color */
+    border-top: none; /* Remove top border as it connects to parent */
+    border-radius: 0 0 4px 4px;
+    min-width: 220px; /* Increased min-width for better readability */
+    z-index: 1000; 
+    
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px); 
+    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+}
+
+/* Show dropdown on hover or when .open class is present */
+.nav-item-dropdown:hover > ul.dropdown-menu-actual,
+.nav-item-dropdown:focus-within > ul.dropdown-menu-actual, /* For keyboard accessibility */
+.nav-item-dropdown.open > ul.dropdown-menu-actual {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+ul.dropdown-menu-actual li a {
+    color: #ffffff;
+    padding: 10px 15px;
+    display: block;
+    text-decoration: none;
+    white-space: nowrap; 
+    font-size: 0.9rem; /* Slightly smaller font for dropdown items */
+}
+ul.dropdown-menu-actual li a i { /* Icons in dropdown items */
+    margin-right: 8px;
+    width: 16px; /* Ensure consistent icon spacing */
+    text-align: center;
+}
+
+ul.dropdown-menu-actual li a:hover,
+ul.dropdown-menu-actual li a.active {
+    background-color: #7F9F00; /* Consistent hover/active with main nav */
 }
 
 
 /* --- Styles for Small Screens (Dropdown Behavior) --- */
 @media (max-width: 767px) { /* Adjust breakpoint as needed */
     .nav-toggle {
-        display: block; /* Show hamburger button */
+        display: block; 
     }
 
     nav.main-nav ul.nav-links {
-        display: none; /* Hide links by default */
+        display: none; 
         position: absolute;
-        background: #6A8A00; /* Match nav background */
+        background: #6A8A00; 
         left: 0;
         right: 0;
-        top: 100%; /* Position below the nav bar */
-        flex-direction: column; /* Stack links vertically */
-        text-align: left; /* Align text to the left in dropdown */
+        top: 100%; 
+        flex-direction: column; 
+        text-align: left; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        z-index: 1000; /* Ensure dropdown is above other content */
+        z-index: 1000; 
     }
 
-    nav.main-nav ul.nav-links.nav-open { /* Class added by JS to show dropdown */
+    nav.main-nav ul.nav-links.nav-open { 
         display: flex;
     }
 
     nav.main-nav ul.nav-links li {
-        width: 100%; /* Make list items take full width */
-        margin: 0; /* Remove horizontal margin */
-        border-bottom: 1px solid #7F9F00; /* Separator for dropdown items */
+        width: 100%; 
+        margin: 0; 
+        border-bottom: 1px solid #7F9F00; 
     }
     nav.main-nav ul.nav-links li:last-child {
         border-bottom: none;
     }
-    nav.main-nav ul.nav-links li a {
-        padding: 1rem; /* Adjust padding for dropdown items */
+    nav.main-nav ul.nav-links li a { /* General link styling for mobile */
+        padding: 1rem; 
+    }
+
+    /* Dropdown behavior on mobile */
+    .nav-item-dropdown > a.dropdown-toggle-link {
+        display: flex; /* Allow space between text and arrow */
+        justify-content: space-between; /* Push arrow to the right */
+        align-items: center;
+    }
+    
+    ul.dropdown-menu-actual {
+        position: static; /* Stack within the mobile nav flow */
+        width: 100%;
+        border: none;
+        box-shadow: none;
+        border-radius: 0;
+        background-color: #5e7a00; /* Slightly darker to indent */
+        opacity: 1; /* Always visible when parent is open */
+        visibility: visible; /* Always visible when parent is open */
+        transform: none; /* No animation needed */
+        display: none; /* Hidden by default, shown when parent .open */
+        padding-left: 15px; /* Indent dropdown items */
+    }
+
+    .nav-item-dropdown.open > ul.dropdown-menu-actual {
+        display: block; /* Show when JS adds .open class */
+    }
+    ul.dropdown-menu-actual li a {
+        padding: 0.8rem 1rem; /* Adjust padding for mobile dropdown items */
     }
 }
 
 
 /* Flash Messages */
-.flash-messages {
-    list-style: none; padding: 0; margin-bottom: 10px;
-    width: 100%; /* Take full width within container */
-     /* If using outside container (e.g., for full-width POS), adjust width/margin: */
-    /* width: 95%; max-width: 1200px; margin-left: auto; margin-right: auto; */
+/* Your existing flash message styles are good, ensure they are placed here or already exist */
+.alert { /* Renamed from .flash-messages li for Bootstrap-like naming if preferred */
+    padding: 12px 15px; 
+    margin-bottom: 15px; /* Increased margin */
+    border-radius: 4px; 
+    border: 1px solid transparent; 
+    width: 100%; /* Ensure it takes full width of its container */
 }
-.flash-messages li { padding: 12px 15px; margin-bottom: 10px; border-radius: 4px; border: 1px solid transparent; }
-.flash-messages .success { background-color: #D0F0C0; color: #38761D; border-color: #A9D8A1; }
-.flash-messages .error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-.flash-messages .info { background-color: #cfe8fc; color: #0a58ca; border-color: #b0d9f9; }
-.flash-messages .warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+.alert-success { background-color: #D0F0C0; color: #38761D; border-color: #A9D8A1; }
+.alert-error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; } /* Common for errors */
+.alert-danger { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; } /* Bootstrap naming */
+.alert-info { background-color: #cfe8fc; color: #0a58ca; border-color: #b0d9f9; }
+.alert-warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+
 
 /* --- General Table Styles (for Products, Customers, Sales History etc.) --- */
 .table-responsive-wrapper {
-    overflow-x: auto; /* Allows horizontal scrolling for the table */
+    overflow-x: auto; 
     margin-bottom: 20px;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-    width: 100%; /* Ensure wrapper takes full width */
+    -webkit-overflow-scrolling: touch; 
+    width: 100%; 
 }
-/* Apply general table styles only to tables INSIDE the wrapper */
 .table-responsive-wrapper > table {
     width: 100%;
     border-collapse: collapse;
@@ -213,12 +317,11 @@ nav.main-nav ul.nav-links li a:hover {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: left;
-    white-space: nowrap; /* Important for horizontal scrolling */
+    white-space: nowrap; 
 }
 .table-responsive-wrapper > table th {
-    background-color: #e9f5db; /* Very light green for table headers */
+    background-color: #e9f5db; 
 }
-/* Actions in General Tables */
 .table-responsive-wrapper .actions a,
 .table-responsive-wrapper .actions button {
     margin-right: 5px;
@@ -230,31 +333,30 @@ nav.main-nav ul.nav-links li a:hover {
     border: none;
     display: inline-block;
     font-size: 0.9rem;
-    color: #ffffff; /* Default white text */
+    color: #ffffff; 
 }
-.table-responsive-wrapper .actions .edit-btn { background-color: #6A8A00; } /* Darker Apple Green */
-.table-responsive-wrapper .actions .delete-btn { background-color: #dc3545; } /* Kept Red */
-.table-responsive-wrapper .actions .view-btn { background-color: #8DB600; } /* Apple Green */
+.table-responsive-wrapper .actions .edit-btn { background-color: #6A8A00; } 
+.table-responsive-wrapper .actions .delete-btn { background-color: #dc3545; } 
+.table-responsive-wrapper .actions .view-btn { background-color: #8DB600; } 
 
 
 /* --- POS Layout Specific Styles --- */
 .pos-grid-container {
     display: flex;
-    flex-direction: column; /* Stack vertically on small screens */
+    flex-direction: column; 
     gap: 15px;
-    padding: 10px; /* Add padding around the whole POS area */
-    background-color: #D0F0C0; /* Light green background for the POS area */
+    padding: 10px; 
+    background-color: #D0F0C0; 
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    /* If not using body.pos-page: */
-     width: 95%; max-width: 1300px; margin: 10px auto;
+    width: 95%; max-width: 1300px; margin: 10px auto;
 }
 
 .pos-add-to-sale, .pos-current-sale-panel {
-    background-color: #f0f8e8; /* Very light green for panels */
+    background-color: #f0f8e8; 
     padding: 15px;
     border-radius: 5px;
-    border: 1px solid #b0d198; /* Slightly darker green border */
+    border: 1px solid #b0d198; 
 }
 
 .pos-add-to-sale h3, .pos-current-sale-panel h3 {
@@ -262,14 +364,13 @@ nav.main-nav ul.nav-links li a:hover {
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid #b0d198;
-    color: #6A8A00; /* Darker Green */
+    color: #6A8A00; 
     text-align: center;
 }
 
-/* Product Button Grid */
 .product-button-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Responsive grid */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
     gap: 10px;
 }
 .product-button-grid form { display: contents; }
@@ -283,58 +384,53 @@ nav.main-nav ul.nav-links li a:hover {
 .custom-sale-btn { background-color: #FFD700; border-color: #e0bb00; color: #333; }
 .custom-sale-btn:hover { background-color: #e0bb00; }
 
-/* Right Panel: Current Sale */
 .pos-current-sale-panel {
     display: flex; flex-direction: column;
-    height: calc(85vh - 40px); /* Example height, adjust as needed */
+    height: calc(85vh - 40px); 
     min-height: 400px;
 }
 .current-sale-items-list {
     flex-grow: 1; overflow-y: auto; border: 1px solid #b0d198;
     border-radius: 4px; margin-bottom: 10px; background-color: #fff;
 }
-/* Styles for the TABLE specifically inside the POS current sale list */
 .current-sale-items-list > table { width: 100%; border-collapse: collapse; }
 .current-sale-items-list > table th, .current-sale-items-list > table td {
     padding: 8px; text-align: left; border-bottom: 1px solid #eee; white-space: normal;
-    vertical-align: middle; /* Align content vertically */
+    vertical-align: middle; 
 }
 .current-sale-items-list > table th {
     background-color: #e9f5db; position: sticky; top: 0; z-index: 1;
 }
 
-/* --- Alignment Fixes for POS Table Headers --- */
-.current-sale-items-list > table th:nth-child(1) { text-align: left; } /* Item */
-.current-sale-items-list > table th:nth-child(2) { text-align: center; } /* Qty */
-.current-sale-items-list > table th:nth-child(3) { text-align: right; } /* Price */
-.current-sale-items-list > table th:nth-child(4) { text-align: right; } /* Subtotal */
-.current-sale-items-list > table th:nth-child(5) { text-align: center; } /* Act */
-/* --- End Alignment Fixes --- */
+.current-sale-items-list > table th:nth-child(1) { text-align: left; } 
+.current-sale-items-list > table th:nth-child(2) { text-align: center; } 
+.current-sale-items-list > table th:nth-child(3) { text-align: right; } 
+.current-sale-items-list > table th:nth-child(4) { text-align: right; } 
+.current-sale-items-list > table th:nth-child(5) { text-align: center; } 
 
-.current-sale-items-list > table td:nth-child(2) { text-align: center; white-space: nowrap; width: 100px; } /* Qty Cell */
-.current-sale-items-list > table td:nth-child(3), /* Price */
-.current-sale-items-list > table td:nth-child(4) { text-align: right; white-space: nowrap; } /* Subtotal */
-.current-sale-items-list > table td:nth-child(5) { text-align: center; width: 40px; } /* Actions */
+.current-sale-items-list > table td:nth-child(2) { text-align: center; white-space: nowrap; width: 100px; } 
+.current-sale-items-list > table td:nth-child(3), 
+.current-sale-items-list > table td:nth-child(4) { text-align: right; white-space: nowrap; } 
+.current-sale-items-list > table td:nth-child(5) { text-align: center; width: 40px; } 
 .btn-remove-item {
     padding: 2px 6px !important; font-size: 0.9em !important; line-height: 1;
     font-weight: bold; color: white !important; background-color: #dc3545 !important; border: none;
 }
-/* Styles for Quantity Controls */
 .quantity-controls {
     display: flex;
     align-items: center;
-    justify-content: center; /* Center items horizontally */
-    gap: 5px; /* Space between buttons and number */
+    justify-content: center; 
+    gap: 5px; 
 }
 .quantity-controls form {
-    display: inline-block; /* Keep forms inline */
+    display: inline-block; 
     margin: 0;
 }
 .btn-qty {
-    padding: 1px 6px; /* Small padding */
-    font-size: 1em; /* Adjust font size */
+    padding: 1px 6px; 
+    font-size: 1em; 
     line-height: 1;
-    min-width: 25px; /* Minimum width */
+    min-width: 25px; 
     cursor: pointer;
     border: 1px solid #adb5bd;
     background-color: #f8f9fa;
@@ -346,27 +442,23 @@ nav.main-nav ul.nav-links li a:hover {
 }
 .item-quantity {
     display: inline-block;
-    min-width: 20px; /* Ensure number has some space */
+    min-width: 20px; 
     text-align: center;
     font-weight: bold;
 }
 
-
-/* Customer Area */
 .customer-area { padding: 10px 0; margin-bottom: 10px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
 .latest-customer { margin-left: 15px; font-style: italic; color: #555; }
 
-/* Finalize Area */
 .finalize-area { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 10px; }
 .btn-finalize { padding: 10px 25px; font-size: 1.1rem; font-weight: bold; }
 .total-display { font-size: 1.4rem; font-weight: bold; color: #38761D; }
 
-/* Bottom Actions */
 .bottom-actions { display: flex; justify-content: flex-start; gap: 10px; padding-top: 10px; border-top: 1px solid #eee; }
 .btn-pos-action { padding: 8px 15px; font-size: 0.9rem; }
 
 
-/* --- General Form & Button Styles (Ensure they are available) --- */
+/* --- General Form & Button Styles --- */
 .form-group { margin-bottom: 18px; }
 .form-group label { display: block; margin-bottom: 6px; font-weight: bold; }
 .form-group input[type="text"], .form-group input[type="number"], .form-group input[type="password"], .form-group textarea, .form-group select, .form-group input[list] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
@@ -381,9 +473,9 @@ textarea { min-height: 80px; resize: vertical; }
 .btn-secondary:hover { background-color: #5a6268; }
 .btn-danger { background-color: #dc3545; color: #fff; }
 .btn-danger:hover { background-color: #c82333; }
-.btn-success { background-color: #8DB600; color: #fff; }
+.btn-success { background-color: #8DB600; color: #fff; } /* Consistent with primary */
 .btn-success:hover { background-color: #6A8A00; }
-.btn-info { background-color: #90EE90; color: #2F3E0A; }
+.btn-info { background-color: #90EE90; color: #2F3E0A; } /* LightGreen for info */
 .btn-info:hover { background-color: #7CCD7C; }
 .btn-warning { background-color: #ffc107; color: #212529; }
 .btn-warning:hover { background-color: #e0a800; }
@@ -400,10 +492,9 @@ textarea { min-height: 80px; resize: vertical; }
 .modal .form-group label { color: #556B2F; }
 .modal .form-group input[type="text"],
 .modal .form-group input[type="number"],
-.modal .form-group select { /* Added select here */
-     background-color: #fff; /* Ensure white background for select too */
+.modal .form-group select { 
+     background-color: #fff; 
 }
-
 
 /* Footer Styling */
 footer { text-align: center; padding: 20px; background: #333; color: #aaa; margin-top: auto; }
@@ -412,10 +503,7 @@ footer p { margin: 0; }
 /* Media Queries for Responsiveness */
 @media (min-width: 768px) { /* Tablets and wider */
     header h1 { font-size: 1.8rem; }
-    nav.main-nav ul.nav-links li { /* Target specific nav links for desktop */
-        display: inline-block; 
-        border-bottom: none; 
-    }
+    /* nav.main-nav ul.nav-links li { Removed to allow flex to control display } */
     .pos-grid-container { flex-direction: row; }
     .pos-add-to-sale { width: 40%; }
     .pos-current-sale-panel { width: 60%; }
@@ -430,6 +518,14 @@ footer p { margin: 0; }
 }
 
 /* Pagination Styles */
+.pagination { /* Added display flex for alignment */
+    display: flex;
+    justify-content: center;
+    padding-left: 0;
+    list-style: none;
+    border-radius: .25rem;
+    margin-top: 20px;
+}
 .pagination .btn { margin: 0 2px; padding: 6px 10px; font-size: 0.9em; }
 .pagination .btn.current-page { background-color: #8DB600; color: white; border-color: #7F9F00; }
 .pagination .btn.disabled { pointer-events: none; opacity: 0.5; }
@@ -439,19 +535,27 @@ footer p { margin: 0; }
 
 /* --- Optional Styles for Reports Page --- */
 .chart-container {
-    background-color: #fff; /* White background for the chart area */
+    background-color: #fff; 
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 30px; /* Space below the chart */
+    margin-bottom: 30px; 
 }
 
-/* Ensure the table on the reports page is also responsive */
-/* The .table-responsive-wrapper class should be applied in the template */
-
-/* You might want to adjust the h3 styling specifically for the reports page if needed */
-.content h3 { /* More specific selector if needed */
+.content h3 { 
     margin-top: 20px;
     margin-bottom: 10px;
-    color: #6A8A00; /* Match theme */
+    color: #6A8A00; 
+}
+
+/* Active link styling for main nav items (non-dropdown) */
+nav.main-nav ul.nav-links > li > a.active {
+    background-color: #7F9F00; /* Or your preferred active color */
+    font-weight: bold; /* Example */
+}
+
+/* Active link styling for dropdown parent when a child is active */
+nav.main-nav ul.nav-links > li.nav-item-dropdown.active-parent > a.dropdown-toggle-link {
+    background-color: #7F9F00; /* Match active color */
+    font-weight: bold;
 }
