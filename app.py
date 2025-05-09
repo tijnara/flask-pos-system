@@ -2,14 +2,15 @@
 # Description: The main Flask application file, configured for deployment.
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session  # Added session
-import db_operations as db
-import datetime
+import db_operations as db  # Assuming db_operations.py is in the same directory
+import datetime  # Import the datetime module
+from dateutil.relativedelta import relativedelta # For date calculations
 import os
 import shutil
 from werkzeug.utils import secure_filename
-import math
-import logging
-from functools import wraps  # For login_required decorator
+import math  # For math.ceil
+import logging  # Import logging module
+from functools import wraps  # For API key decorator
 
 app = Flask(__name__)
 
@@ -32,9 +33,9 @@ HARDCODED_PASSWORD = "password123"
 
 
 # --- Configuration for Database and Backups ---
-DATABASE_FILE = "pos_system.db"
-BACKUP_DIR = "db_backups"
-ITEMS_PER_PAGE = 10
+DATABASE_FILE = "pos_system.db"  # Name of your SQLite database file
+BACKUP_DIR = "db_backups"  # Directory to store database backups
+ITEMS_PER_PAGE = 10  # Number of items (sales, customers, etc.) to display per page
 api_keys_str = os.environ.get("VALID_API_KEYS", "YOUR_SUPER_SECRET_API_KEY_12345")  # Default only for testing
 VALID_API_KEYS = set(key.strip() for key in api_keys_str.split(',') if key.strip())
 # Log warning if default/no API key is used
@@ -119,7 +120,7 @@ def index():
     # If logged in, show dashboard
     try:
         total_sales_today = db.get_total_sales_today_db()
-        total_sales_weekly = db.get_total_sales_current_week_db()
+        total_sales_weekly = db.get_total_sales_current_week_db() # This function should exist in db_operations.py
     except Exception as e:
         app.logger.error(f"Error fetching dashboard data: {e}", exc_info=True)
         flash("Could not load dashboard data.", "error")
@@ -180,7 +181,6 @@ def list_products():
 @app.route('/products/add', methods=['GET', 'POST'])
 @login_required
 def add_product():
-    # ... (keep existing add_product logic) ...
     if request.method == 'POST':
         name = request.form.get('name')
         price_str = request.form.get('price')
@@ -209,7 +209,6 @@ def add_product():
 @app.route('/products/edit/<int:product_id>', methods=['GET', 'POST'])
 @login_required
 def edit_product(product_id):
-    # ... (keep existing edit_product logic) ...
     product = db.get_product_by_id_db(product_id)
     if not product:
         flash("Product not found.", "error")
@@ -240,7 +239,6 @@ def edit_product(product_id):
 @app.route('/products/delete/<int:product_id>', methods=['POST'])
 @login_required
 def delete_product(product_id):
-    # ... (keep existing delete_product logic) ...
     product = db.get_product_by_id_db(product_id)
     if not product:
         flash("Product not found.", "error")
@@ -256,7 +254,6 @@ def delete_product(product_id):
 @app.route('/customers/page/<int:page_num>')
 @login_required
 def list_customers(page_num=1):
-    # ... (keep existing list_customers logic) ...
     total_customers = db.count_total_customers_db()
     customers_on_page = db.get_customers_paginated_db(page=page_num, per_page=ITEMS_PER_PAGE)
     if not customers_on_page and page_num > 1 and total_customers > 0:
@@ -273,7 +270,6 @@ def list_customers(page_num=1):
 @app.route('/customers/add', methods=['GET', 'POST'])
 @login_required
 def add_customer():
-    # ... (keep existing add_customer logic) ...
     if request.method == 'POST':
         name = request.form.get('name')
         contact = request.form.get('contact')
@@ -296,7 +292,6 @@ def add_customer():
 @app.route('/customers/edit/<int:customer_id>', methods=['GET', 'POST'])
 @login_required
 def edit_customer(customer_id):
-    # ... (keep existing edit_customer logic) ...
     customer = db.get_customer_by_id_db(customer_id)
     if not customer:
         flash("Customer not found.", "error")
@@ -320,7 +315,6 @@ def edit_customer(customer_id):
 @app.route('/customers/delete/<int:customer_id>', methods=['POST'])
 @login_required
 def delete_customer(customer_id):
-    # ... (keep existing delete_customer logic) ...
     customer = db.get_customer_by_id_db(customer_id)
     if not customer:
         flash("Customer not found to delete.", "error")
@@ -336,10 +330,7 @@ def delete_customer(customer_id):
 @login_required
 def pos_interface():
     """Point of Sale interface for creating new sales."""
-    # --- Use session for current sale ---
     current_sale = session.get('current_sale', {"items": [], "customer_name": "N/A", "total": 0.0})
-    # --- End session usage ---
-
     all_products = db.get_all_products_db()
     customers = db.get_all_customers_db()
     prioritized_product_names = ["Refill (20)", "Refill (25)"]
@@ -353,10 +344,7 @@ def pos_interface():
 
     if request.method == 'POST':
         action = request.form.get('action')
-
-        # Modify current_sale dictionary directly (it's a copy from session)
         if action == 'add_item':
-            # ... (keep logic, but modify 'current_sale' instead of global) ...
             product_name = request.form.get('product_name')
             quantity_str = request.form.get('quantity', '1')
             try:
@@ -384,9 +372,7 @@ def pos_interface():
                         flash(f"Product '{product_name}' not found.", "error")
             except ValueError:
                 flash("Invalid quantity.", "error")
-
         elif action == 'add_custom_item':
-            # ... (keep logic, but modify 'current_sale') ...
             custom_name = request.form.get('custom_product_name', 'Custom Item').strip()
             custom_price_str = request.form.get('custom_price')
             custom_quantity_str = request.form.get('custom_quantity', '1')
@@ -417,9 +403,7 @@ def pos_interface():
                 flash("Invalid custom price or quantity.", "error")
             except TypeError:
                 flash("Missing custom price or quantity.", "error")
-
         elif action == 'set_customer':
-            # ... (keep logic, but modify 'current_sale') ...
             customer_name_from_form = request.form.get('customer_name_select')
             if customer_name_from_form is not None:
                 if not customer_name_from_form.strip():
@@ -438,9 +422,7 @@ def pos_interface():
             else:
                 current_sale["customer_name"] = "N/A"
                 flash("No customer name provided, set to N/A.", "warning")
-
         elif action == 'remove_item':
-            # ... (keep logic, but modify 'current_sale') ...
             item_name_to_remove = request.form.get('item_name')
             item_price_to_remove_str = request.form.get('item_price')
             try:
@@ -455,9 +437,7 @@ def pos_interface():
                     flash(f"Could not find exact item '{item_name_to_remove}' to remove.", "warning")
             except (ValueError, TypeError):
                 flash(f"Error removing item '{item_name_to_remove}'. Invalid price data.", "error")
-
         elif action == 'increase_qty' or action == 'decrease_qty':
-            # ... (keep logic, but modify 'current_sale') ...
             item_name = request.form.get('item_name')
             item_price_str = request.form.get('item_price')
             item_found = False
@@ -486,20 +466,14 @@ def pos_interface():
                     flash(f"Could not find exact item '{item_name}' to adjust quantity.", "warning")
             except (ValueError, TypeError):
                 flash(f"Error adjusting quantity for '{item_name}'. Invalid price data.", "error")
-
         elif action == 'clear_sale':
-            # --- Clear session variable ---
             session.pop('current_sale', None)
-            current_sale = {"items": [], "customer_name": "N/A",
-                            "total": 0.0}  # Also reset local copy for immediate render
+            current_sale = {"items": [], "customer_name": "N/A", "total": 0.0}
             flash("Sale cleared.", "info")
-            # --- End clear session ---
-
         elif action == 'finalize_sale':
             if not current_sale["items"]:
                 flash("Cannot finalize an empty sale.", "error")
             else:
-                # Use the current_sale data from session (or the local copy modified in this request)
                 sale_id = db.create_sale_db(customer_name=current_sale["customer_name"])
                 if sale_id:
                     all_items_added = True
@@ -519,49 +493,39 @@ def pos_interface():
                             conn.commit();
                             app.logger.info(f"Final total {final_total} updated for SaleID {sale_id}")
                             flash(f"Sale #{sale_id} finalized successfully for ₱{final_total:.2f}!", "success")
-                            # --- Clear session variable on success ---
                             session.pop('current_sale', None)
-                            # --- End clear session ---
                             return redirect(url_for('view_sale', sale_id=sale_id))
-                        except db.sqlite3.Error as e:
+                        except db.sqlite3.Error as e: # Catch specific sqlite3 error
                             app.logger.error(f"DB Error updating final total: {e}", exc_info=True)
                             flash(f"DB Error updating final total for Sale #{sale_id}.", "error")
-                            session[
-                                'current_sale'] = current_sale  # Save potentially modified sale back to session on error
+                            session['current_sale'] = current_sale # Keep sale in session on error
                             return redirect(url_for('pos_interface'))
                         finally:
                             if conn: conn.close()
                     else:
                         flash(f"Sale #{sale_id} created, but item saving failed.", "error")
-                        session[
-                            'current_sale'] = current_sale  # Save potentially modified sale back to session on error
+                        session['current_sale'] = current_sale # Keep sale in session on error
                         return redirect(url_for('pos_interface'))
                 else:
                     flash("Failed to create sale record.", "error")
-                    session['current_sale'] = current_sale  # Save potentially modified sale back to session on error
-            # Save potentially modified sale back to session before redirecting on failure/empty sale
-            session['current_sale'] = current_sale
+                    session['current_sale'] = current_sale # Keep sale in session on error
+            session['current_sale'] = current_sale # Ensure current_sale is always re-saved to session if not cleared
             return redirect(url_for('pos_interface'))
 
-        # --- Save modified sale back to session after POST actions ---
-        session['current_sale'] = current_sale
+        session['current_sale'] = current_sale # Save changes to session after any POST action
         return redirect(url_for('pos_interface'))
-        # --- End save session ---
 
-    # GET request: Render using the sale data retrieved from session
     return render_template('pos/interface.html',
                            title="New Sale",
                            prioritized_products=prioritized_products,
                            other_products=other_products,
                            customers=customers,
-                           # Pass data from the session-retrieved dictionary
                            current_sale_items=current_sale["items"],
                            current_customer=current_sale["customer_name"],
                            current_total=current_sale["total"])
 
 
 # --- Sales History Routes ---
-# (Keep existing sales routes)
 @app.route('/sales')
 @app.route('/sales/page/<int:page_num>')
 @login_required
@@ -585,7 +549,7 @@ def view_sale(sale_id):
     sale_details = db.get_sale_details_db(sale_id)
     if not sale_details:
         flash(f"Sale with ID {sale_id} not found.", "error")
-        return redirect(url_for('list_sales', page_num=1))
+        return redirect(url_for('list_sales', page_num=1)) # Redirect to first page of sales list
     return render_template('sales/details.html', sale=sale_details["info"], items=sale_details["items"],
                            title=f"Sale #{sale_id} Details")
 
@@ -593,16 +557,70 @@ def view_sale(sale_id):
 @app.route('/sales/delete/<int:sale_id>', methods=['POST'])
 @login_required
 def delete_sale(sale_id):
-    page = request.form.get('page', 1, type=int)
+    page = request.form.get('page', 1, type=int) # Get current page to redirect back
     if db.delete_sale_db(sale_id):
         flash(f"Sale #{sale_id} deleted successfully!", "success")
     else:
         flash(f"Failed to delete Sale #{sale_id}.", "error")
     return redirect(url_for('list_sales', page_num=page))
 
+# --- NEW REPORTS ROUTE ---
+@app.route('/reports')
+@login_required
+def reports_page():
+    """
+    View function to handle the reports page, focusing on the current week.
+    """
+    try:
+        # Determine the start and end of the current week (e.g., Monday to Sunday)
+        today = datetime.date.today()
+        # Monday is 0 and Sunday is 6. weekday() returns 0 for Monday.
+        week_start_date = today - datetime.timedelta(days=today.weekday())
+        week_end_date = week_start_date + datetime.timedelta(days=6)
+
+        # Fetch data from db_operations.py
+        # These functions need to be implemented in db_operations.py
+        # Example: db.get_weekly_sales_chart_data_db should return a dict like:
+        # {'labels': ['Mon', 'Tue', ...], 'data': [100, 150,...], 'total': 1000}
+        chart_info = db.get_weekly_sales_chart_data_db(week_start_date, week_end_date)
+        if not chart_info: # Basic error handling if data isn't returned
+            chart_info = {'labels': [], 'data': [], 'total': 0.0}
+            flash("Could not retrieve weekly sales chart data.", "warning")
+
+        # Example: db.get_items_sold_summary_for_period_db
+        items_summary = db.get_items_sold_summary_for_period_db(week_start_date, week_end_date)
+        if items_summary is None: # Check for None explicitly if that's what the db function might return
+             items_summary = [] # Default to empty list
+             flash("Could not retrieve item sales summary for the week.", "warning")
+
+
+        return render_template('reports.html',
+                               title="Weekly Sales Report",
+                               week_start_date=week_start_date.strftime('%Y-%m-%d'),
+                               week_end_date=week_end_date.strftime('%Y-%m-%d'),
+                               total_sales_for_chart_week=chart_info.get('total', 0.0),
+                               chart_labels=chart_info.get('labels', []),
+                               chart_data=chart_info.get('data', []),
+                               items_sold_summary=items_summary
+                              )
+    except Exception as e:
+        app.logger.error(f"Error generating reports page: {e}", exc_info=True)
+        flash("An error occurred while generating the report. Please try again later.", "error")
+        # Fallback to a simpler render or redirect if critical data is missing
+        return render_template('reports.html',
+                               title="Weekly Sales Report",
+                               week_start_date="N/A",
+                               week_end_date="N/A",
+                               total_sales_for_chart_week=0.0,
+                               chart_labels=[],
+                               chart_data=[],
+                               items_sold_summary=[],
+                               error_message="Could not load report data."
+                              )
+# --- END NEW REPORTS ROUTE ---
+
 
 # --- Admin Routes ---
-# (Keep existing admin routes)
 @app.route('/admin')
 @login_required
 def admin_index():
@@ -639,15 +657,15 @@ def restore_database():
                     app.logger.info(f"No existing DB file at {current_db_path}")
                 file.save(current_db_path)
                 flash(f'Database successfully restored from {filename}!', 'success');
-                flash('RESTART the application.', 'warning');
+                flash('RESTART the application for changes to take effect if the database structure changed or to reload data.', 'warning'); # Clarified message
                 app.logger.info(f"DB restored from {filename}")
-                return redirect(url_for('restore_database'))
+                return redirect(url_for('restore_database')) # Redirect back to the restore page
             except Exception as e:
                 flash(f'Error during restore: {str(e)}', 'error');
                 app.logger.error(f"DB Restore Error: {e}", exc_info=True);
                 return redirect(request.url)
         else:
-            flash('Invalid file type.', 'error');
+            flash('Invalid file type. Only .db, .sqlite, .sqlite3 are allowed.', 'error'); # More specific error
             return redirect(request.url)
     return render_template('admin/restore_db.html', title="Restore Database", BACKUP_DIR=BACKUP_DIR)
 
@@ -658,17 +676,18 @@ def backup_database():
     try:
         current_db_path = os.path.join(app.root_path, DATABASE_FILE)
         backup_db_dir_path = os.path.join(app.root_path, BACKUP_DIR)
-        if not os.path.exists(backup_db_dir_path): os.makedirs(backup_db_dir_path)
+        if not os.path.exists(backup_db_dir_path): os.makedirs(backup_db_dir_path) # Ensure backup dir exists
         if os.path.exists(current_db_path):
             original_name, original_ext = os.path.splitext(DATABASE_FILE)
-            backup_filename = f"{original_name}.{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}{original_ext}"
+            # Ensure backup has .db extension for clarity, even if original had .sqlite etc.
+            backup_filename = f"{original_name}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.db.bak"
             backup_path = os.path.join(backup_db_dir_path, backup_filename)
             shutil.copy2(current_db_path, backup_path)
             flash(f'Successfully backed up database to {backup_path}', 'success')
             app.logger.info(f"Database backed up successfully to {backup_path}")
         else:
-            flash('Database file not found.', 'error');
-            app.logger.error(f"DB file not found at {current_db_path}")
+            flash('Database file not found. Cannot perform backup.', 'error'); # Clearer error
+            app.logger.error(f"DB file not found at {current_db_path} for backup.")
     except Exception as e:
         flash(f'Error during backup: {str(e)}', 'error');
         app.logger.error(f"DB Backup Error: {e}", exc_info=True)
@@ -676,13 +695,12 @@ def backup_database():
 
 
 # --- API Endpoints ---
-# (Keep existing API endpoints)
 @app.route('/api/products', methods=['GET'])
 @require_api_key
 def api_get_products():
     try:
         products = db.get_all_products_db();
-        products_list = [dict(p) for p in products];
+        products_list = [dict(p) for p in products]; # Convert Row objects to dicts
         return jsonify(products_list)
     except Exception as e:
         app.logger.error(f"API Error getting products: {e}", exc_info=True)
@@ -694,7 +712,7 @@ def api_get_products():
 def api_get_product_by_name(name):
     try:
         product = db.get_product_by_name_db(name);
-        if product: return jsonify(dict(product))
+        if product: return jsonify(dict(product)) # Convert Row object to dict
         return jsonify({"error": "Product not found"}), 404
     except Exception as e:
         app.logger.error(f"API Error getting product by name '{name}': {e}", exc_info=True)
@@ -715,48 +733,53 @@ def api_sync_sale():
     try:
         sale_id = db.create_sale_db(customer_name=customer_name)
         if not sale_id: return jsonify({"error": "Failed to create sale record on server"}), 500
-        total_calculated = 0.0
+        # total_calculated = 0.0 # Not strictly needed here as DB will sum up
         for item_data in items:
             name = item_data.get('name');
             qty_str = item_data.get('quantity');
-            price_str = item_data.get('price_at_sale')
+            price_str = item_data.get('price_at_sale') # Assuming this key exists in incoming JSON
             if not name or qty_str is None or price_str is None:
                 app.logger.error(f"API Sync Error: Invalid item data for SaleID {sale_id}: {item_data}");
-                continue
+                continue # Skip this item
             try:
                 qty = int(qty_str);
                 price = float(price_str)
                 if qty <= 0 or price < 0:
                     app.logger.error(f"API Sync Error: Invalid qty/price for item '{name}' in SaleID {sale_id}");
-                    continue
-                if not db.add_sale_item_db(sale_id, name, qty, price):
+                    continue # Skip this item
+                if not db.add_sale_item_db(sale_id, name, qty, price): # price here is price_at_sale
                     app.logger.error(f"API Sync Error: Failed to add item '{name}' to SaleID {sale_id} in DB.")
-                else:
-                    total_calculated += qty * price
+                # else: total_calculated += qty * price # Not strictly needed
             except (ValueError, TypeError):
                 app.logger.error(f"API Sync Error: Invalid number format for item '{name}' in SaleID {sale_id}");
-                continue
+                continue # Skip this item
         conn = None
         try:
             conn = db.get_db_connection();
             cursor = conn.cursor()
+            # Recalculate total from DB to ensure accuracy
             cursor.execute("SELECT SUM(Subtotal) FROM SaleItems WHERE SaleID = ?", (sale_id,))
             db_total = cursor.fetchone()[0] or 0.0
             cursor.execute("UPDATE Sales SET TotalAmount = ? WHERE SaleID = ?", (db_total, sale_id))
             conn.commit();
             app.logger.info(f"API Sync: Updated final total for SaleID {sale_id} to {db_total}")
-        except db.sqlite3.Error as e:
+        except db.sqlite3.Error as e: # Catch specific sqlite3 error
             app.logger.error(f"API Sync Error: Failed to update final total for SaleID {sale_id}: {e}", exc_info=True)
-            return jsonify({"error": "Sale items added but failed to update final total", "sale_id": sale_id}), 500
+            # Even if total update fails, items might have been added. Client needs to know.
+            return jsonify({"error": "Sale items may have been added but failed to update final total", "sale_id": sale_id}), 500
         finally:
             if conn: conn.close()
-        return jsonify({"message": "Sale synchronized successfully", "sale_id": sale_id}), 201
+        return jsonify({"message": "Sale synchronized successfully", "sale_id": sale_id, "total_amount_synced": db_total}), 201
     except Exception as e:
         app.logger.error(f"API Sync Error: Unexpected error processing sale: {e}", exc_info=True)
-        return jsonify({"error": "An unexpected error occurred on the server"}), 500
+        # If a sale_id was created but process failed, it's good to inform client if possible
+        error_response = {"error": "An unexpected error occurred on the server"}
+        if sale_id: error_response["sale_id_created"] = sale_id
+        return jsonify(error_response), 500
 
 
 # --- Re-added __main__ block for local debugging ---
+# This block should be commented out or removed for deployment on PythonAnywhere
 if __name__ == '__main__':
     print("-" * 68);
     print("POS System Starting...")
@@ -764,6 +787,6 @@ if __name__ == '__main__':
     print(f"Backups: '{os.path.abspath(BACKUP_DIR)}'.")
     print(f"URL: http://127.0.0.1:5000");
     print("-" * 68)
-     #Ensure debug is True for local development/testing
+    # Ensure debug is True for local development/testing
     app.run(debug=True)
 # --- End Re-added block ---

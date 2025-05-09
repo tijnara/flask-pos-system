@@ -437,3 +437,21 @@ footer p { margin: 0; }
 .btn-outline-secondary:hover { background-color: #e9ecef; color: #495057; }
 .pagination .btn-outline-secondary.disabled { border: none; background-color: transparent; color: #6c757d; opacity: 1; padding: 8px 4px; }
 
+/* --- Optional Styles for Reports Page --- */
+.chart-container {
+    background-color: #fff; /* White background for the chart area */
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px; /* Space below the chart */
+}
+
+/* Ensure the table on the reports page is also responsive */
+/* The .table-responsive-wrapper class should be applied in the template */
+
+/* You might want to adjust the h3 styling specifically for the reports page if needed */
+.content h3 { /* More specific selector if needed */
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #6A8A00; /* Match theme */
+}
