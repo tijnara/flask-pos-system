@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}{{ title|default("Dashboard") }}{% endblock %}
+
 {% block content %}
 <h2>Welcome to SEASIDE POS System</h2>
 <p>Quick overview of today's and recent activity.</p>
@@ -11,22 +13,28 @@
 <div class="dashboard-summary" style="margin-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
     
     {# Today's Total Sales Card #}
-    <div class="summary-card" style="background-color: #D0F0C0; padding: 15px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #A9D8A1;">
-        <h4>Today's Total Sales ({{ now().strftime('%Y-%m-%d') }})</h4>
-        <p style="font-size: 1.5em; font-weight: bold; color: #38761D;">
-            ₱{{ "%.2f"|format(total_sales_today if total_sales_today else 0.0) }}
+    <div class="summary-card" style="background-color: #D0F0C0; padding: 20px; border-radius: 8px; border: 1px solid #A9D8A1; text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
+        <div> {# Wrapper for title and date #}
+            <h4 style="margin-bottom: 5px; font-size: 1rem; font-weight: bold;">Today's Total Sales</h4>
+            <p style="font-size: 0.85rem; color: #555; margin-bottom: 10px;">({{ now().strftime('%Y-%m-%d') }})</p>
+        </div>
+        <p style="font-size: 1.8em; font-weight: bold; color: #38761D; margin-top: auto; margin-bottom: 0;"> {# margin-top: auto pushes this to bottom #}
+            ₱{{ "%.2f"|format(total_sales_today if total_sales_today is not none else 0.0) }}
         </p>
     </div>
 
-    {# Weekly Total Sales Card #}
-    <div class="summary-card" style="background-color: #cfe8fc; padding: 15px; border-radius: 5px; border: 1px solid #b0d9f9;">
-        <h4>Total Sales (Last 7 Days)</h4>
-        <p style="font-size: 1.5em; font-weight: bold; color: #0a58ca;">
-            ₱{{ "%.2f"|format(total_sales_weekly if total_sales_weekly else 0.0) }}
+    {# Weekly Total Sales Card - Updated title and variable #}
+    <div class="summary-card" style="background-color: #cfe8fc; padding: 20px; border-radius: 8px; border: 1px solid #b0d9f9; text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
+        <div> {# Wrapper for title and date #}
+            <h4 style="margin-bottom: 5px; font-size: 1rem; font-weight: bold;">This Week - Mon to Sun</h4>
+            <p style="font-size: 0.85rem; color: #555; margin-bottom: 10px;">({{ current_week_start_date_display }} - {{ current_week_end_date_display }})</p>
+        </div>
+        <p style="font-size: 1.8em; font-weight: bold; color: #0a58ca; margin-top: auto; margin-bottom: 0;"> {# margin-top: auto pushes this to bottom #}
+            ₱{{ "%.2f"|format(total_sales_this_week if total_sales_this_week is not none else 0.0) }}
         </p>
     </div>
 
-    {# Add more summary cards here if needed #}
+    {# Add more summary cards here if needed, following the same pattern #}
 
 </div>
 

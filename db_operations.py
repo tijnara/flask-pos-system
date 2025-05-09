@@ -26,6 +26,7 @@ def get_db_connection():
 
 
 # --- Product Operations ---
+# ... (Your existing product functions: add_product_db, get_all_products_db, etc.) ...
 def add_product_db(name, price):
     sql = "INSERT INTO Products (ProductName, Price) VALUES (?, ?)"
     conn = None
@@ -129,7 +130,7 @@ def delete_product_db(product_id):
         deleted_rows = cursor.rowcount
         logging.info(f"Deleted product ID {product_id}. Rows affected: {deleted_rows}")
         return deleted_rows > 0
-    except sqlite3.Error as e:  # Catching generic sqlite3.Error, could be IntegrityError if FK constraints exist
+    except sqlite3.Error as e:
         logging.error(f"Database error in delete_product_db for ID {product_id}: {e}", exc_info=True)
         if conn: conn.rollback()
         return False
@@ -138,7 +139,8 @@ def delete_product_db(product_id):
 
 
 # --- Customer Operations ---
-def add_customer_db(name, contact=None, address=None):  # Using your existing signature
+# ... (Your existing customer functions: add_customer_db, get_customers_paginated_db, etc.) ...
+def add_customer_db(name, contact=None, address=None):
     sql = "INSERT INTO Customers (CustomerName, ContactNumber, Address) VALUES (?, ?, ?)"
     conn = None
     try:
@@ -288,6 +290,7 @@ def delete_customer_db(customer_id):
 
 
 # --- Sales Operations ---
+# ... (Your existing sales functions: create_sale_db, add_sale_item_db, etc.) ...
 def create_sale_db(customer_name='N/A'):
     sql = """
           INSERT INTO Sales (SaleTimestamp, CustomerName, TotalAmount)
@@ -426,6 +429,7 @@ def delete_sale_db(sale_id):
 
 # --- Dashboard / Sales Summary Functions ---
 def get_total_sales_today_db():
+    """Calculates the total amount of sales made today."""
     today_date_str = datetime.date.today().strftime('%Y-%m-%d')
     sql = "SELECT SUM(TotalAmount) FROM Sales WHERE DATE(SaleTimestamp) = ?"
     conn = None
@@ -443,6 +447,7 @@ def get_total_sales_today_db():
 
 
 def get_items_sold_today_db():
+    """Gets a summary of items sold today (ProductName and total Quantity)."""
     today_date_str = datetime.date.today().strftime('%Y-%m-%d')
     sql = """
           SELECT si.ProductName, SUM(si.Quantity) as TotalQuantity
@@ -467,12 +472,20 @@ def get_items_sold_today_db():
 
 
 def get_total_sales_current_week_db():
+    """
+    Calculates the total amount of sales made in the current week (Monday to Sunday).
+    """
     today = datetime.date.today()
-    days_since_monday = today.weekday()
-    start_of_week = today - datetime.timedelta(days=days_since_monday)
+    # Monday is 0 and Sunday is 6. today.weekday() gives Monday as 0.
+    start_of_week = today - datetime.timedelta(days=today.weekday())
+    end_of_week = start_of_week + datetime.timedelta(days=6)  # Sunday of the current week
 
     start_date_str = start_of_week.strftime('%Y-%m-%d')
-    end_date_str = today.strftime('%Y-%m-%d')
+    # For SQL, if SaleTimestamp includes time, we want to include the entire Sunday.
+    # So, the end range should be the start of the day AFTER Sunday if using '<'
+    # Or, if using '<=', it should be the end of Sunday.
+    # Using DATE(SaleTimestamp) simplifies this.
+    end_date_str = end_of_week.strftime('%Y-%m-%d')
 
     sql = "SELECT SUM(TotalAmount) FROM Sales WHERE DATE(SaleTimestamp) >= ? AND DATE(SaleTimestamp) <= ?"
     conn = None
@@ -482,18 +495,19 @@ def get_total_sales_current_week_db():
         cursor.execute(sql, (start_date_str, end_date_str))
         total = cursor.fetchone()[0]
         logging.info(
-            f"Fetched current week sales total (Mon-Today: {start_date_str} to {end_date_str}): {total if total else 0.0}")
+            f"Fetched current week (Mon-Sun) sales total ({start_date_str} to {end_date_str}): {total if total else 0.0}")
         return total if total is not None else 0.0
     except sqlite3.Error as e:
-        logging.error(f"Database error getting total sales for current week ({start_date_str} to {end_date_str}): {e}",
-                      exc_info=True)
+        logging.error(
+            f"Database error getting total sales for current week Mon-Sun ({start_date_str} to {end_date_str}): {e}",
+            exc_info=True)
         return 0.0
     finally:
         if conn: conn.close()
 
 
 # --- WEEKLY REPORTING FUNCTIONS (FOR REPORTS PAGE) ---
-
+# ... (Your existing get_weekly_sales_chart_data_db and get_items_sold_summary_for_period_db) ...
 def get_weekly_sales_chart_data_db(start_date_obj, end_date_obj):
     conn = None
     try:
@@ -580,24 +594,14 @@ def get_items_sold_summary_for_period_db(start_date_obj, end_date_obj):
 
 
 # --- MONTHLY REPORTING FUNCTIONS ---
+# ... (Your existing get_monthly_sales_chart_data_db and get_items_sold_summary_for_month_db) ...
 def get_monthly_sales_chart_data_db(year, month):
-    """
-    Fetches daily sales data for a given month for chart display.
-    Args:
-        year (int): The year of the report.
-        month (int): The month of the report (1-12).
-    Returns:
-        dict: {'labels': list_of_day_numbers, 'data': list_of_daily_sales_amounts, 'total': total_sales_for_month}
-              Returns a default dict if an error occurs or no data.
-    """
     conn = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Determine the first and last day of the month
         first_day_of_month = datetime.date(year, month, 1)
-        # calendar.monthrange returns (weekday of first day, number of days in month)
         num_days_in_month = calendar.monthrange(year, month)[1]
         last_day_of_month = datetime.date(year, month, num_days_in_month)
 
@@ -615,8 +619,8 @@ def get_monthly_sales_chart_data_db(year, month):
         cursor.execute(sql_daily_totals, (start_date_str, end_date_str))
         sales_data_rows = cursor.fetchall()
 
-        labels = []  # Day numbers (1, 2, ..., num_days_in_month)
-        data = []  # Daily sales totals
+        labels = []
+        data = []
         total_sales_for_month = 0.0
 
         sales_dict = {row['SaleDay']: row['DailyTotal'] for row in sales_data_rows}
@@ -625,7 +629,7 @@ def get_monthly_sales_chart_data_db(year, month):
             current_day_obj = datetime.date(year, month, day_num)
             current_day_str_key = current_day_obj.strftime('%Y-%m-%d')
 
-            labels.append(str(day_num))  # Chart label is the day number
+            labels.append(str(day_num))
 
             daily_total = sales_dict.get(current_day_str_key, 0.0)
             data.append(daily_total)
@@ -648,16 +652,6 @@ def get_monthly_sales_chart_data_db(year, month):
 
 
 def get_items_sold_summary_for_month_db(year, month):
-    """
-    Fetches a summary of items sold within a given month.
-    Args:
-        year (int): The year of the report.
-        month (int): The month of the report (1-12).
-    Returns:
-        list: A list of dictionaries, e.g.,
-              [{'ItemName': 'Product A', 'ItemsSold': 10, 'TotalSales': 100.00}, ...]
-              Returns an empty list if an error occurs or no data.
-    """
     conn = None
     try:
         conn = get_db_connection()

@@ -12,7 +12,8 @@ import math
 import logging
 from functools import wraps
 import calendar
-import json  # Import json for explicit stringification if needed
+
+# import json # Not strictly needed if tojson filter is reliable with correct data types
 
 app = Flask(__name__)
 
@@ -74,7 +75,6 @@ def login_required(f):
 
 
 # --- API Key Decorator ---
-# ... (your existing require_api_key decorator) ...
 def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -91,26 +91,47 @@ def require_api_key(f):
 
 
 # --- Main Routes ---
-# ... (your existing index, login, logout, product, customer, POS, sales history routes) ...
 @app.route('/')
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+
+    total_sales_today = 0.0
+    total_sales_this_week_actual = 0.0
+    current_week_start_display = "N/A"
+    current_week_end_display = "N/A"
+
     try:
+        today = datetime.date.today()
+        # Calculate Monday of the current week
+        current_week_monday = today - datetime.timedelta(days=today.weekday())
+        # Calculate Sunday of the current week
+        current_week_sunday = current_week_monday + datetime.timedelta(days=6)
+
         total_sales_today = db.get_total_sales_today_db()
-        total_sales_weekly = db.get_total_sales_current_week_db()
+        # This function now calculates Mon-Sun from db_operations.py
+        total_sales_this_week_actual = db.get_total_sales_current_week_db()
+
+        # Format dates for display: "May 5"
+        current_week_start_display = current_week_monday.strftime("%b %d")
+        current_week_end_display = current_week_sunday.strftime("%b %d, %Y")  # Include year for end date
+
     except Exception as e:
         app.logger.error(f"Error fetching dashboard data: {e}", exc_info=True)
         flash("Could not load dashboard data.", "error")
-        total_sales_today = 0.0
-        total_sales_weekly = 0.0
+        # Defaults are already set above
+
     return render_template('index.html',
                            title="POS Home / Dashboard",
                            total_sales_today=total_sales_today,
-                           total_sales_weekly=total_sales_weekly)
+                           total_sales_this_week=total_sales_this_week_actual,
+                           # Use the correctly calculated weekly total
+                           current_week_start_date_display=current_week_start_display,
+                           current_week_end_date_display=current_week_end_display)
 
 
 # --- Login/Logout Routes ---
+# ... (Your existing login, logout routes) ...
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if session.get('logged_in'):
@@ -139,6 +160,7 @@ def logout():
 
 
 # --- Product Routes ---
+# ... (Your existing product routes) ...
 @app.route('/products')
 @login_required
 def list_products():
@@ -223,6 +245,7 @@ def delete_product(product_id):
 
 
 # --- Customer Routes ---
+# ... (Your existing customer routes) ...
 @app.route('/customers')
 @app.route('/customers/page/<int:page_num>')
 @login_required
@@ -300,6 +323,7 @@ def delete_customer(customer_id):
 
 
 # --- POS Interface Route ---
+# ... (Your existing POS interface route) ...
 @app.route('/pos', methods=['GET', 'POST'])
 @login_required
 def pos_interface():
@@ -488,6 +512,7 @@ def pos_interface():
 
 
 # --- Sales History Routes ---
+# ... (Your existing sales history routes) ...
 @app.route('/sales')
 @app.route('/sales/page/<int:page_num>')
 @login_required
@@ -550,23 +575,38 @@ def weekly_reports_page():
         if chart_info and isinstance(chart_info, dict):
             if chart_info.get('error'):
                 app.logger.error(f"Error from get_weekly_sales_chart_data_db: {chart_info.get('error')}")
-                page_error_message = "Could not load weekly sales chart data due to a database error."
-            chart_labels_for_template = chart_info.get('labels', [])
-            chart_data_for_template = chart_info.get('data', [])
-            total_sales_for_period = chart_info.get('total', 0.0)
-            if not isinstance(chart_labels_for_template, list): chart_labels_for_template = []
-            if not isinstance(chart_data_for_template, list): chart_data_for_template = []
+                page_error_message = "DB error loading weekly chart data."
+
+            raw_labels = chart_info.get('labels', [])
+            if isinstance(raw_labels, list):
+                chart_labels_for_template = [str(lbl) for lbl in raw_labels]
+            else:
+                app.logger.warning(f"Weekly chart_info['labels'] was not a list: {raw_labels}")
+
+            raw_data = chart_info.get('data', [])
+            if isinstance(raw_data, list):
+                try:
+                    chart_data_for_template = [float(d) for d in raw_data]
+                except (ValueError, TypeError):
+                    app.logger.error(f"Weekly chart_info['data'] contained non-numeric values: {raw_data}")
+                    if not page_error_message: page_error_message = "Weekly chart data contains invalid numbers."
+            else:
+                app.logger.warning(f"Weekly chart_info['data'] was not a list: {raw_data}")
+
+            total_sales_for_period = float(chart_info.get('total', 0.0))
         else:
             app.logger.error(f"Unexpected chart_info structure for weekly report: {chart_info}")
             page_error_message = "Failed to retrieve weekly sales chart data."
+            # Ensure defaults if chart_info is bad
+            chart_labels_for_template = []
+            chart_data_for_template = []
+            total_sales_for_period = 0.0
 
         if items_summary is None:
             app.logger.warning("Items summary for weekly report was None.")
             items_summary_for_template = []
             if not page_error_message:
                 page_error_message = "Could not load weekly item summary."
-            else:
-                page_error_message += " Also, could not load item summary."
         elif isinstance(items_summary, list):
             items_summary_for_template = items_summary
         else:
@@ -574,7 +614,8 @@ def weekly_reports_page():
             items_summary_for_template = []
             if not page_error_message: page_error_message = "Failed to retrieve item summary."
 
-        app.logger.info(f"WEEKLY REPORT: Labels: {chart_labels_for_template}, Data: {chart_data_for_template}")
+        app.logger.info(
+            f"WEEKLY REPORT PREPARED - Labels: {chart_labels_for_template}, Data: {chart_data_for_template}, Error: {page_error_message}")
         return render_template('reports.html',
                                title="Weekly Sales Report",
                                week_start_date=week_start_date.strftime('%Y-%m-%d'),
@@ -586,11 +627,11 @@ def weekly_reports_page():
                                error_message=page_error_message
                                )
     except Exception as e:
-        app.logger.error(f"Error generating weekly reports page: {e}", exc_info=True)
+        app.logger.error(f"Critical error generating weekly reports page: {e}", exc_info=True)
         flash("An unexpected error occurred while generating the weekly report.", "error")
         return render_template('reports.html',
                                title="Weekly Sales Report",
-                               error_message="Could not load report data due to an unexpected error.",
+                               error_message="Unexpected error loading report data.",
                                week_start_date="N/A", week_end_date="N/A",
                                total_sales_for_chart_week=0.0, chart_labels=[], chart_data=[],
                                items_sold_summary=[])
@@ -614,10 +655,10 @@ def monthly_reports_page(year=None, month=None):
         if month is None: month = today.month
 
         if not (1 <= month <= 12):
-            flash("Invalid month selected. Showing current month.", "warning")
+            flash("Invalid month selected. Defaulting to current month.", "warning")
             year, month = today.year, today.month
         if not (today.year - 50 <= year <= today.year + 5):
-            flash("Invalid year selected. Showing current month.", "warning")
+            flash("Invalid year selected. Defaulting to current month.", "warning")
             year, month = today.year, today.month
 
         month_name_str_val = calendar.month_name[month]
@@ -629,25 +670,40 @@ def monthly_reports_page(year=None, month=None):
             if chart_info.get('error'):
                 app.logger.error(
                     f"Error from get_monthly_sales_chart_data_db for {year}-{month}: {chart_info.get('error')}")
-                page_error_message = f"Could not load sales chart data for {month_name_str_val} {year} due to a database error."
-            chart_labels_for_template = chart_info.get('labels', [])
-            chart_data_for_template = chart_info.get('data', [])
-            total_sales_for_month_val = chart_info.get('total', 0.0)
-            # Ensure month_name is also correctly fetched or defaulted from chart_info if it provides it
+                page_error_message = f"DB error loading chart data for {month_name_str_val} {year}."
+
+            raw_labels = chart_info.get('labels', [])
+            if isinstance(raw_labels, list):
+                chart_labels_for_template = [str(lbl) for lbl in raw_labels]
+            else:
+                app.logger.warning(f"Monthly chart_info['labels'] was not a list: {raw_labels}")
+
+            raw_data = chart_info.get('data', [])
+            if isinstance(raw_data, list):
+                try:
+                    chart_data_for_template = [float(d) for d in raw_data]
+                except (ValueError, TypeError):
+                    app.logger.error(f"Monthly chart_info['data'] contained non-numeric values: {raw_data}")
+                    if not page_error_message: page_error_message = f"Monthly chart data for {month_name_str_val} {year} contains invalid numbers."
+            else:
+                app.logger.warning(f"Monthly chart_info['data'] was not a list: {raw_data}")
+
+            total_sales_for_month_val = float(chart_info.get('total', 0.0))
             month_name_str_val = chart_info.get('month_name', month_name_str_val)
-            if not isinstance(chart_labels_for_template, list): chart_labels_for_template = []
-            if not isinstance(chart_data_for_template, list): chart_data_for_template = []
         else:
             app.logger.error(f"Unexpected chart_info structure for monthly report ({year}-{month}): {chart_info}")
             page_error_message = f"Failed to retrieve sales chart data for {month_name_str_val} {year}."
+            # Ensure defaults if chart_info is bad
+            chart_labels_for_template = []
+            chart_data_for_template = []
+            total_sales_for_month_val = 0.0
+            # month_name_str_val is already defaulted from calendar.month_name[month]
 
         if items_summary is None:
             app.logger.warning(f"Items summary for monthly report ({year}-{month}) was None.")
             items_summary_for_template = []
             if not page_error_message:
                 page_error_message = f"Could not load item summary for {month_name_str_val} {year}."
-            else:
-                page_error_message += " Also, could not load item summary."
         elif isinstance(items_summary, list):
             items_summary_for_template = items_summary
         else:
@@ -660,7 +716,7 @@ def monthly_reports_page(year=None, month=None):
         next_month_date = current_month_date + relativedelta(months=1)
 
         app.logger.info(
-            f"MONTHLY REPORT ({year}-{month}): Labels: {chart_labels_for_template}, Data: {chart_data_for_template}")
+            f"MONTHLY REPORT PREPARED ({year}-{month}) - Labels: {chart_labels_for_template}, Data: {chart_data_for_template}, Error: {page_error_message}")
         return render_template('monthly_report.html',
                                title=f"Monthly Sales Report - {month_name_str_val} {year}",
                                report_year=year,
@@ -678,19 +734,19 @@ def monthly_reports_page(year=None, month=None):
                                current_month=today.month,
                                error_message=page_error_message
                                )
-    except ValueError:
-        app.logger.error(f"Invalid date for monthly report: year={year}, month={month}", exc_info=True)
+    except ValueError as ve:
+        app.logger.error(f"Invalid date for monthly report: year={year}, month={month}. Error: {ve}", exc_info=True)
         flash("Invalid date parameters for the monthly report.", "error")
         return redirect(url_for('monthly_reports_page'))
     except Exception as e:
-        app.logger.error(f"Error generating monthly reports page for {year}-{month}: {e}", exc_info=True)
+        app.logger.error(f"Critical error generating monthly reports page for {year}-{month}: {e}", exc_info=True)
         flash("An unexpected error occurred while generating the monthly report.", "error")
         today_fallback = datetime.date.today()
         prev_month_fallback = today_fallback - relativedelta(months=1)
         next_month_fallback = today_fallback + relativedelta(months=1)
         return render_template('monthly_report.html',
                                title="Monthly Sales Report",
-                               error_message="Could not load report data due to an unexpected error.",
+                               error_message="Unexpected error loading report data.",
                                report_year=today_fallback.year, report_month_num=today_fallback.month,
                                report_month_name=calendar.month_name[today_fallback.month],
                                total_sales_for_month=0.0, chart_labels=[], chart_data=[], items_sold_summary=[],
@@ -700,8 +756,7 @@ def monthly_reports_page(year=None, month=None):
                                )
 
 
-# --- Admin Routes ---
-# ... (your existing admin routes) ...
+# --- Admin Routes & API Endpoints ---
 @app.route('/admin')
 @login_required
 def admin_index():
@@ -774,8 +829,6 @@ def backup_database():
     return redirect(url_for('admin_index'))
 
 
-# --- API Endpoints ---
-# ... (your existing API endpoints) ...
 @app.route('/api/products', methods=['GET'])
 @require_api_key
 def api_get_products():
