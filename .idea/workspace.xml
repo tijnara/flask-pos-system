@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5865b67f-5462-412d-a9b4-10c0f6987d93" name="Changes" comment="fix the error on weekly reports and added montly report. added also Reports navigator">
+    <list default="true" id="5865b67f-5462-412d-a9b4-10c0f6987d93" name="Changes" comment="dashboard">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/db_operations.py" beforeDir="false" afterPath="$PROJECT_DIR$/db_operations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pos_system.db" beforeDir="false" afterPath="$PROJECT_DIR$/pos_system.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/sales/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/sales/list.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,7 +84,9 @@
       <workItem from="1746712858204" duration="3285000" />
       <workItem from="1746752631212" duration="2444000" />
       <workItem from="1746755163032" duration="4213000" />
-      <workItem from="1746780629295" duration="7460000" />
+      <workItem from="1746780629295" duration="9444000" />
+      <workItem from="1746879732556" duration="4311000" />
+      <workItem from="1747227802750" duration="2049000" />
     </task>
     <task id="LOCAL-00001" summary="first commit and push">
       <option name="closed" value="true" />
@@ -180,7 +184,15 @@
       <option name="project" value="LOCAL" />
       <updated>1746789863766</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="dashboard">
+      <option name="closed" value="true" />
+      <created>1746793176280</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1746793176280</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -195,11 +207,12 @@
     <MESSAGE value="modified interface.html" />
     <MESSAGE value="weekly reports added" />
     <MESSAGE value="fix the error on weekly reports and added montly report. added also Reports navigator" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix the error on weekly reports and added montly report. added also Reports navigator" />
+    <MESSAGE value="dashboard" />
+    <option name="LAST_COMMIT_MESSAGE" value="dashboard" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/OnlinePOS$database_setup.coverage" NAME="database_setup Coverage Results" MODIFIED="1746689341466" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/OnlinePOS$db_operations.coverage" NAME="db_operations Coverage Results" MODIFIED="1746701984138" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/OnlinePOS$app.coverage" NAME="app Coverage Results" MODIFIED="1746790728569" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/OnlinePOS$app.coverage" NAME="app Coverage Results" MODIFIED="1747229474239" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

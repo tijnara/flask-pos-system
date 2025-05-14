@@ -1,81 +1,165 @@
 {% extends "base.html" %}
 
+{% block title %}{{ title|default("Sales History") }}{% endblock %}
+
 {% block content %}
-<h2>Sales History</h2>
-
-{% if sales %}
-    <p style="margin-bottom: 10px;">
-        Displaying sales {{ (current_page - 1) * per_page + 1 }} - {{ min(current_page * per_page, total_items) }} of {{ total_items }} total sales.
-        (Page {{ current_page }} of {{ total_pages if total_pages > 0 else 1 }})
-    </p>
-    <div class="table-responsive-wrapper"> {# Ensure table is wrapped for responsiveness #}
-        <table>
-            <thead>
-                <tr>
-                    <th>Sale ID</th>
-                    <th>Timestamp</th>
-                    <th>Customer</th>
-                    <th>Total Amount</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sale in sales %}
-                <tr>
-                    <td>#{{ sale.SaleID }}</td>
-                    <td>{{ sale.SaleTimestamp }}</td>
-                    <td>{{ sale.CustomerName if sale.CustomerName else 'N/A' }}</td>
-                    <td>₱{{ "%.2f"|format(sale.TotalAmount) }}</td> {# Using PHP currency #}
-                    <td class="actions">
-                        <a href="{{ url_for('view_sale', sale_id=sale.SaleID) }}" class="view-btn">View</a>
-                        {# --- DELETE FORM --- #}
-                        <form action="{{ url_for('delete_sale', sale_id=sale.SaleID) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete Sale #{{ sale.SaleID }}? This will also delete all associated items and cannot be undone.');">
-                             {# Optionally pass current page number back to route #}
-                             <input type="hidden" name="page" value="{{ current_page }}">
-                             <button type="submit" class="delete-btn">Delete</button>
-                        </form>
-                        {# --- END DELETE FORM --- #}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-history"></i> {{ title }}</h2>
     </div>
 
-    {# Pagination Navigation #}
-    {% if total_pages > 1 %}
-    <div class="pagination" style="margin-top: 20px; text-align: center;">
-        {# First Page Link #}
-        {% if current_page > 1 %} <a href="{{ url_for('list_sales', page_num=1) }}" class="btn btn-outline-secondary">&laquo;&laquo; First</a> {% else %} <span class="btn btn-outline-secondary disabled">&laquo;&laquo; First</span> {% endif %}
-        {# Previous Page Link #}
-        {% if current_page > 1 %} <a href="{{ url_for('list_sales', page_num=current_page - 1) }}" class="btn btn-secondary">&laquo; Previous</a> {% else %} <span class="btn btn-secondary disabled">&laquo; Previous</span> {% endif %}
-        {# Page Number Links #}
-        {% set page_window = 2 %} {# Number of pages to show before/after current page #}
-        {% set start_page = max(1, current_page - page_window) %}
-        {% set end_page = min(total_pages, current_page + page_window) %}
-        {% if start_page > 1 %} <a href="{{ url_for('list_sales', page_num=1) }}" class="btn btn-outline-secondary">1</a> {% if start_page > 2 %} <span class="btn btn-outline-secondary disabled" style="border:none; background:transparent; padding: 8px 4px;">...</span> {% endif %} {% endif %}
-        {% for page in range(start_page, end_page + 1) %} {% if page == current_page %} <span class="btn btn-primary current-page">{{ page }}</span> {% else %} <a href="{{ url_for('list_sales', page_num=page) }}" class="btn btn-outline-secondary">{{ page }}</a> {% endif %} {% endfor %}
-        {% if end_page < total_pages %} {% if end_page < total_pages - 1 %} <span class="btn btn-outline-secondary disabled" style="border:none; background:transparent; padding: 8px 4px;">...</span> {% endif %} <a href="{{ url_for('list_sales', page_num=total_pages) }}" class="btn btn-outline-secondary">{{ total_pages }}</a> {% endif %}
-        {# Next Page Link #}
-        {% if current_page < total_pages %} <a href="{{ url_for('list_sales', page_num=current_page + 1) }}" class="btn btn-secondary">Next &raquo;</a> {% else %} <span class="btn btn-secondary disabled">Next &raquo;</span> {% endif %}
-        {# Last Page Link #}
-        {% if current_page < total_pages %} <a href="{{ url_for('list_sales', page_num=total_pages) }}" class="btn btn-outline-secondary">Last &raquo;&raquo;</a> {% else %} <span class="btn btn-outline-secondary disabled">Last &raquo;&raquo;</span> {% endif %}
-    </div>
+    {# Date Filter Form #}
+    <form method="GET" id="salesFilterForm" action="{{ url_for('list_sales') }}" class="mb-4 p-3 border rounded bg-light">
+        <h5 class="mb-3">Filter Sales List by Date Range</h5>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="start_date" class="form-label">Start Date:</label>
+                <input type="date" class="form-control form-control-sm" id="start_date" name="start_date" value="{{ request.args.get('start_date', '') }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date" class="form-label">End Date:</label>
+                <input type="date" class="form-control form-control-sm" id="end_date" name="end_date" value="{{ request.args.get('end_date', '') }}">
+            </div>
+            <div class="col-md-4">
+                <div class="btn-group w-100" role="group" aria-label="Filter actions">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-filter me-1"></i>Filter List
+                    </button>
+                    <a href="{{ url_for('list_sales') }}" class="btn btn-outline-secondary btn-sm flex-grow-1 d-flex align-items-center justify-content-center" role="button">
+                        <i class="fas fa-times-circle me-1"></i>Clear Filter
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% if request.args.get('start_date') or request.args.get('end_date') %}
+        <div class="row g-3 mt-2">
+            <div class="col-12"> 
+                <div class="text-muted">
+                    {% if request.args.get('start_date') and request.args.get('end_date') %}
+                    <small>List filtered from {{ request.args.get('start_date') }} to {{ request.args.get('end_date') }}.</small>
+                    {% elif request.args.get('start_date') %}
+                    <small>List filtered from {{ request.args.get('start_date') }} onwards.</small>
+                    {% elif request.args.get('end_date') %}
+                    <small>List filtered up to {{ request.args.get('end_date') }}.</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </form>
+    <hr>
+
+    {% if sales %}
+        {# ADDED: Label for number of receipts found #}
+        <div class="mb-2">
+            <p class="text-muted">
+                Found <strong>{{ total_items }}</strong> receipt(s)
+                {% if request.args.get('start_date') or request.args.get('end_date') %}
+                    for the selected criteria.
+                {% else %}
+                    in total.
+                {% endif %}
+            </p>
+        </div>
+
+        <p style="margin-bottom: 10px;">
+            Displaying sales {{ (current_page - 1) * per_page + 1 }} - {{ min(current_page * per_page, total_items) }} of {{ total_items }}.
+            (Page {{ current_page }} of {{ total_pages if total_pages > 0 else 1 }})
+        </p>
+        <div class="table-responsive-wrapper">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Sale ID</th>
+                        <th>Date & Time</th>
+                        <th>Customer Name</th>
+                        <th style="text-align: right;">Total Amount</th>
+                        <th style="text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                    <tr>
+                        <td>#{{ sale.SaleID }}</td>
+                        <td>{{ sale.SaleTimestamp | format_datetime if sale.SaleTimestamp else 'N/A' }}</td>
+                        <td>{{ sale.CustomerName if sale.CustomerName else 'N/A' }}</td>
+                        <td style="text-align: right;">₱{{ "%.2f"|format(sale.TotalAmount if sale.TotalAmount is not none else 0.0) }}</td>
+                        <td style="text-align: center;" class="actions">
+                            <a href="{{ url_for('view_sale', sale_id=sale.SaleID) }}" class="btn btn-info btn-sm view-btn" title="View Details">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <form action="{{ url_for('delete_sale', sale_id=sale.SaleID) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete Sale #{{ sale.SaleID }}? This action cannot be undone.');">
+                                <input type="hidden" name="page" value="{{ current_page }}">
+                                {% if request.args.get('start_date') %}<input type="hidden" name="start_date" value="{{ request.args.get('start_date') }}">{% endif %}
+                                {% if request.args.get('end_date') %}<input type="hidden" name="end_date" value="{{ request.args.get('end_date') }}">{% endif %}
+                                <button type="submit" class="btn btn-danger btn-sm delete-btn" title="Delete Sale">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# Pagination Navigation #}
+        {% if total_pages > 1 %}
+        <div class="pagination" style="margin-top: 20px; text-align: center;">
+            {% if current_page > 1 %}
+                <a href="{{ url_for('list_sales', page_num=1, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" class="btn btn-outline-secondary">&laquo;&laquo; First</a>
+                <a href="{{ url_for('list_sales', page_num=current_page - 1, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" class="btn btn-secondary">&laquo; Previous</a>
+            {% else %}
+                 <span class="btn btn-outline-secondary disabled">&laquo;&laquo; First</span>
+                <span class="btn btn-secondary disabled">&laquo; Previous</span>
+            {% endif %}
+
+            {% set page_window = 2 %} 
+            {% set start_page_num_calc = max(1, current_page - page_window) %}
+            {% set end_page_num_calc = min(total_pages, current_page + page_window) %}
+
+            {% if start_page_num_calc > 1 %}
+                <a href="{{ url_for('list_sales', page_num=1, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" class="btn btn-outline-secondary">1</a>
+                {% if start_page_num_calc > 2 %}
+                    <span class="btn btn-outline-secondary disabled" style="border:none; background:transparent; padding: 8px 4px;">...</span>
+                {% endif %}
+            {% endif %}
+
+            {% for page_i in range(start_page_num_calc, end_page_num_calc + 1) %}
+                {% if page_i == current_page %}
+                    <span class="btn btn-primary current-page">{{ page_i }}</span>
+                {% else %}
+                    <a href="{{ url_for('list_sales', page_num=page_i, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" class="btn btn-outline-secondary">{{ page_i }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if end_page_num_calc < total_pages %}
+                {% if end_page_num_calc < total_pages - 1 %}
+                     <span class="btn btn-outline-secondary disabled" style="border:none; background:transparent; padding: 8px 4px;">...</span>
+                {% endif %}
+                <a href="{{ url_for('list_sales', page_num=total_pages, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" class="btn btn-outline-secondary">{{ total_pages }}</a>
+            {% endif %}
+
+            {% if current_page < total_pages %}
+                <a href="{{ url_for('list_sales', page_num=current_page + 1, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" class="btn btn-secondary">Next &raquo;</a>
+                <a href="{{ url_for('list_sales', page_num=total_pages, start_date=request.args.get('start_date'), end_date=request.args.get('end_date')) }}" class="btn btn-outline-secondary">Last &raquo;&raquo;</a>
+            {% else %}
+                <span class="btn btn-secondary disabled">Next &raquo;</span>
+                <span class="btn btn-outline-secondary disabled">Last &raquo;&raquo;</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            No sales records found{% if request.args.get('start_date') or request.args.get('end_date') %} for the selected date range{% endif %}.
+        </div>
     {% endif %}
+</div>
+{% endblock %}
 
-{% else %}
-    <p>No sales recorded yet. <a href="{{ url_for('pos_interface') }}">Make a new sale!</a></p>
-{% endif %}
-
-{# Include pagination styles if they are not in the main style.css or need overrides #}
-{# It's better to move these to style.css if possible #}
-<style>
-    .pagination .btn { margin: 0 2px; padding: 6px 10px; font-size: 0.9em; }
-    .pagination .btn.current-page { background-color: #8DB600; color: white; border-color: #7F9F00; }
-    .pagination .btn.disabled { pointer-events: none; opacity: 0.5; }
-    .btn-outline-secondary { background-color: transparent; border: 1px solid #adb5bd; color: #6c757d; }
-    .btn-outline-secondary:hover { background-color: #e9ecef; color: #495057; }
-    .pagination .btn-outline-secondary.disabled { border: none; background-color: transparent; color: #6c757d; opacity: 1; padding: 8px 4px; }
-</style>
-
+{% block scripts %}
+{{ super() }}
+{# Any other page-specific scripts can go here #}
+</script>
 {% endblock %}
